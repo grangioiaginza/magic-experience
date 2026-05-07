@@ -12,37 +12,38 @@
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5vh; 
             background-image: url('./SocialCover.webp');
             background-size: cover; background-position: center; background-repeat: no-repeat;
+            z-index: 2;
         }
-        .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1; }
+        .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: -1; }
         
-        /* 2. メッセージ：完全中央固定 */
+        /* 2. メッセージ：PC完全対応のセンタリング */
         #msg-container { height: 160px; width: 100%; position: relative; z-index: 100; margin-bottom: 10px; }
         .msg-line { 
-            position: absolute; left: 50%; top: 50%; width: 100%;
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
-            transform: translate(-50%, -50%);
             transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); 
             opacity: 0; font-size: 1.4rem; font-weight: normal; line-height: 1.6; letter-spacing: 0.15em; 
             text-shadow: 0 0 20px rgba(0,0,0,1); white-space: nowrap;
         }
-        .msg-line.center { opacity: 1; transform: translate(-50%, -50%); }
-        .msg-line.top { opacity: 0.3; transform: translate(-50%, -100%) scale(0.9); }
-        .msg-line.exit { opacity: 0; transform: translate(-50%, -150%); }
-        .msg-line.bottom { opacity: 0; transform: translate(-50%, 0%); }
+        .msg-line.center { opacity: 1; transform: translateY(0); }
+        .msg-line.top { opacity: 0.3; transform: translateY(-50px) scale(0.9); }
+        .msg-line.exit { opacity: 0; transform: translateY(-100px); }
+        .msg-line.bottom { opacity: 0; transform: translateY(50px); }
 
         /* 3. カウントダウン */
         #timer { 
             height: 100px; width: 100%; font-size: 6rem; font-weight: bold; color: #fff; 
             display: flex; align-items: center; justify-content: center;
             opacity: 0; pointer-events: none; z-index: 500; font-family: serif;
-            text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 50px #000;
+            text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px 3px 0 #000, -3px 3px 0 #000, 0 0 50px #000;
         }
 
         /* 4. カードテーブル */
-        #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 1.5s; }
+        #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; z-index: 10; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
+        .card.is-visible { opacity: 1; filter: blur(0); }
         
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
@@ -54,13 +55,139 @@
         }
         .floating { animation: float 3.5s infinite ease-in-out; }
         
-        /* juwa-inからtransformを削除（JSの配置を邪魔しないように） */
         .juwa-in { animation: juwa-in 1.2s forwards; }
         @keyframes juwa-in { from { opacity: 0; filter: blur(20px); } to { opacity: 1; filter: blur(0); } }
         
         .juwa-out { animation: juwa-out 3.0s forwards; } 
         @keyframes juwa-out { from { opacity: 1; filter: blur(0); transform: scale(1); } to { opacity: 0; filter: blur(45px); transform: scale(1.6); } }
 
-        /* 6. 予約UI */
-        #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; transition: 2s; text-align: center; }
-        .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color:
+        /* 6. フィナーレ */
+        #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; text-align: center; }
+        .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; box-shadow: 0 5px 25px rgba(0,0,0,0.6); }
+
+        .hidden { display: none !important; }
+        #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.5); z-index: 2000; }
+
+        /* 横画面案内：スマホ(幅900px以下)かつ縦向きのときのみ表示 */
+        #orientation-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            z-index: 3000; visibility: hidden; opacity: 0; transition: 0.5s; 
+        }
+        @media screen and (max-width: 900px) and (orientation: portrait) {
+            #orientation-overlay { visibility: visible; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="orientation-overlay">
+    <p>画面を横にして、"Card Magic"をお楽しみください</p>
+    <div style="font-size: 3rem; margin-top: 20px;">🔄</div>
+</div>
+
+<div id="version-info">Build: 2375 (Stable)</div>
+
+<div class="container">
+    <div id="game-ui">
+        <div id="msg-container"></div>
+        <div id="timer">8</div>
+        <div id="card-table"></div>
+    </div>
+    <div id="reserve-ui" class="hidden">
+        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
+    </div>
+</div>
+
+<script>
+    // --- 構成データ ---
+    const fixedSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
+    const fixedSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    let currentA = [];
+    let currentB = [];
+
+    const table = document.getElementById('card-table');
+    const timerDisplay = document.getElementById('timer');
+    const msgContainer = document.getElementById('msg-container');
+
+    window.onload = () => {
+        try {
+            const isAdmin = new URLSearchParams(window.location.search).get('mode') === 'gioia_admin';
+            if (!isAdmin && localStorage.getItem('gioia_magic_played')) {
+                showReserveImmediately();
+            } else {
+                if (isAdmin) localStorage.removeItem('gioia_magic_played');
+                setupCards();
+                initMagic();
+            }
+        } catch (e) {
+            alert("エラーが発生しました: " + e.message);
+        }
+    };
+
+    function setupCards() {
+        currentA = shuffle([...fixedSetA]);
+        currentB = shuffle([...fixedSetB]);
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function pushMsg(text) {
+        const lines = msgContainer.querySelectorAll('.msg-line');
+        lines.forEach(l => {
+            if (l.classList.contains('top')) { l.classList.replace('top', 'exit'); setTimeout(() => l.remove(), 1200); }
+            else if (l.classList.contains('center')) { l.classList.replace('center', 'top'); }
+        });
+        const el = document.createElement('div');
+        el.className = 'msg-line bottom';
+        el.innerHTML = text;
+        msgContainer.appendChild(el);
+        el.offsetHeight; 
+        setTimeout(() => el.classList.replace('bottom', 'center'), 100);
+    }
+
+    // 扇形レイアウトの適用
+    function applyFanLayout(cards, spacing, rotateUnit) {
+        cards.forEach((c, i) => {
+            const diff = i - (cards.length - 1) / 2;
+            const tx = diff * spacing;
+            const ty = Math.abs(diff) * Math.abs(diff) * 15;
+            const rot = diff * rotateUnit;
+
+            c.style.opacity = 1;
+            c.style.left = `calc(50% - 65px)`;
+            c.style.setProperty('--base-tx', `${tx}px`);
+            c.style.setProperty('--base-ty', `${ty}px`);
+            c.style.setProperty('--base-rot', `${rot}deg`);
+            c.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+        });
+    }
+
+    async function performShuffle(cards) {
+        const sequence = [
+            { idx: 4, x: 100, r: 10 },
+            { idx: 3, x: -100, r: -10 },
+            { idx: 2, x: 100, r: 10 }
+        ];
+        for (let step of sequence) {
+            const c = cards[step.idx];
+            c.style.zIndex = 100;
+            c.style.transition = "all 0.4s ease-out";
+            c.style.transform = `translate(${step.x}px, -30px) rotate(${step.r}deg)`;
+            await sleep(400);
+            c.style.zIndex = 0;
+            c.style.transform = `translate(0, 0) rotate(0deg)`;
+            await sleep(300);
+        }
+    }
+
+    async function initMagic() {
+        await sleep(1000
