@@ -8,129 +8,144 @@
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; text-align: center; margin: 0; overflow: hidden; }
         .container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
         
-        /* テーブルの演出 */
         #card-table { display: flex; justify-content: center; align-items: center; height: 350px; position: relative; width: 100%; max-width: 800px; }
         
-        /* 3Dカードの構造 */
-        .card { width: 140px; height: 210px; position: absolute; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); perspective: 1000px; }
-        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
-        .card.is-flipped .card-inner { transform: rotateY(180deg); }
+        /* 3Dカード構造 */
+        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; }
+        
+        /* 最初は裏向き */
+        .card.is-back .card-inner { transform: rotateY(180deg); }
 
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; }
-        .card-back { transform: rotateY(180deg); background-image: url('back.webp'); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 6px; box-shadow: 0 5px 20px rgba(0,0,0,0.8); background-size: cover; background-position: center; }
+        .card-front { background-color: #fff; }
+        .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); }
 
-        h1 { font-size: 1.5rem; font-weight: normal; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(241,213,146,0.5); margin-bottom: 30px; }
-        .btn { background: linear-gradient(135deg, #f1d592 0%, #b39352 100%); color: #000; border: none; padding: 15px 40px; font-size: 1rem; cursor: pointer; border-radius: 30px; font-weight: bold; margin-top: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .hidden { display: none; opacity: 0; }
-        #reserve-ui { padding: 20px; transition: opacity 1s; }
+        /* テキスト演出 */
+        #msg-container { height: 120px; display: flex; align-items: center; justify-content: center; padding: 0 20px; }
+        h1 { font-size: 1.2rem; font-weight: normal; line-height: 1.6; letter-spacing: 0.1em; transition: opacity 0.5s; }
+        
+        /* カウントダウン表示 */
+        #timer { font-size: 3rem; font-weight: bold; color: #fff; margin-top: 10px; opacity: 0; }
+        
+        .btn { background: linear-gradient(135deg, #f1d592 0%, #b39352 100%); color: #000; border: none; padding: 12px 35px; font-size: 1rem; cursor: pointer; border-radius: 30px; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
+        .btn.show { opacity: 1; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="game-ui">
-        <h1 id="main-msg">この中の1枚を、心の中で決めてください</h1>
-        <div id="card-table"></div>
-        <button id="action-btn" class="btn" onclick="startMagic()">決めました</button>
+    <div id="msg-container">
+        <h1 id="main-msg"></h1>
     </div>
-
-    <div id="reserve-ui" class="hidden">
-        <h1>不思議を感じましたか？</h1>
-        <p style="line-height: 1.8;">Gran GIOIA Ginza では、<br>WEBでは決して体験できない<br>「このレベルではない軌跡」をお届けします。</p>
-        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
-    </div>
+    
+    <div id="card-table"></div>
+    <div id="timer">10</div>
+    
+    <button id="next-btn" class="btn" onclick="dealComplete()">決めました</button>
 </div>
 
 <script>
-// 画像URLの設定
-    const cardsSetA = ['JH.webp', 'KD.webp', 'QS.webp', 'QD.webp', 'JC.webp'];
-    const cardsSetB = ['JS.webp', 'JD.webp', 'QC.webp', 'QH.webp'];
-
+    const cardsSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     const table = document.getElementById('card-table');
     const msg = document.getElementById('main-msg');
-    const btn = document.getElementById('action-btn');
+    const timerDisplay = document.getElementById('timer');
+    const nextBtn = document.getElementById('next-btn');
 
-    // ★ 管理者モードの判定ロジック
+    // 管理者モード判定
     const urlParams = new URLSearchParams(window.location.search);
-    const isAdmin = urlParams.get('mode') === 'gioia_admin'; // 合言葉を設定
+    const isAdmin = urlParams.get('mode') === 'gioia_admin';
 
     window.onload = () => {
-        // 管理者モードでない、かつ既にプレイ済みの場合は予約画面へ
         if (!isAdmin && localStorage.getItem('gioia_magic_played')) {
-            showReserve();
+            // プレイ済みなら飛ばす（ここでは一旦簡易的に）
+            location.href = "https://ginzagioia.studio.site/reservation"; 
         } else {
-            // 管理者の場合はLocalStorageをリセットして開始
-            if (isAdmin) {
-                localStorage.removeItem('gioia_magic_played');
-                console.log("Admin Mode: Resetting magic state.");
-            }
-            setupCards(cardsSetA);
+            initMagic();
         }
     };
 
-    function setupCards(images) {
+    async function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+    async function initMagic() {
+        // 1. デッキの準備（中央に重ねる）
         table.innerHTML = '';
-        images.forEach((img, i) => {
+        cardsSetA.forEach((img, i) => {
             const card = document.createElement('div');
-            card.className = 'card';
-            const offset = (i - (images.length-1)/2) * 155;
-            const rotation = (i - (images.length-1)/2) * 6;
-            card.style.left = `calc(50% - 70px + ${offset}px)`;
-            card.style.transform = `rotate(${rotation}deg)`;
-            
-            card.innerHTML = `
-                <div class="card-inner">
-                    <div class="card-face card-front" style="background-image: url('${img}')"></div>
-                    <div class="card-face card-back"></div>
-                </div>
-            `;
+            card.className = 'card is-back'; // 最初は裏向き
+            card.id = `card-${i}`;
+            card.style.left = `calc(50% - 65px)`; 
+            card.style.zIndex = i;
+            card.innerHTML = `<div class="card-inner">
+                <div class="card-face card-front" style="background-image: url('${img}')"></div>
+                <div class="card-face card-back"></div>
+            </div>`;
             table.appendChild(card);
         });
+
+        await sleep(500);
+        updateMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+        
+        // 2. ディーラーが配るように広げる
+        await sleep(1500);
+        const cards = document.querySelectorAll('.card');
+        cards.forEach((c, i) => {
+            const offset = (i - 2) * 145;
+            const rotation = (i - 2) * 4;
+            c.style.left = `calc(50% - 65px + ${offset}px)`;
+            c.style.transform = `rotate(${rotation}deg)`;
+        });
+
+        await sleep(1000);
+        updateMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
+        await sleep(2500);
+        updateMsg("誰かに声に出したりすると、<br>スマートフォンのマイクが拾うかもしれません。");
+        await sleep(3500);
+        updateMsg("あなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
+        await sleep(3500);
+
+        // 3. 一枚ずつスピーディーに表向きにする
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].classList.remove('is-back');
+            await sleep(200); // 0.2秒間隔でめくる
+        }
+
+        // 4. 10秒カウントダウン開始
+        startCountdown();
     }
 
-    function startMagic() {
-        // 管理者でない場合のみ、プレイ済みフラグを立てる
-        if (!isAdmin) {
-            localStorage.setItem('gioia_magic_played', 'true');
+    function updateMsg(text) {
+        msg.style.opacity = 0;
+        setTimeout(() => {
+            msg.innerHTML = text;
+            msg.style.opacity = 1;
+        }, 500);
+    }
+
+    async function startCountdown() {
+        timerDisplay.style.opacity = 1;
+        for (let i = 10; i >= 0; i--) {
+            timerDisplay.innerText = i;
+            if (i === 0) break;
+            await sleep(1000);
         }
         
-        btn.classList.add('hidden');
-        msg.innerText = "あなたの選んだカードを強く念じてください...";
-
-        const allCards = document.querySelectorAll('.card');
-        allCards.forEach(c => c.classList.add('is-flipped'));
-
-        setTimeout(() => {
-            allCards.forEach(c => {
-                c.style.left = 'calc(50% - 70px)';
-                c.style.transform = 'rotate(0deg)';
-                c.style.opacity = '0.5';
-            });
-        }, 1000);
-
-        setTimeout(() => {
-            setupCards(cardsSetB);
-            const newCards = document.querySelectorAll('.card');
-            newCards.forEach(c => {
-                c.classList.add('is-flipped');
-                c.style.opacity = '1';
-            });
-
-            setTimeout(() => {
-                msg.innerText = "あなたのカードを、抜き取りました。";
-                newCards.forEach(c => c.classList.remove('is-flipped'));
-                
-                setTimeout(() => {
-                    showReserve();
-                }, 3000);
-            }, 800);
-        }, 2500);
+        // 0になったら全てを裏向きにする
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(c => c.classList.add('is-back'));
+        
+        await sleep(800);
+        timerDisplay.style.opacity = 0;
+        updateMsg("あなたのカードを抜き取ります...");
+        
+        // ここで「決めました」ボタンを出す（あるいは自動で次へ）
+        nextBtn.classList.add('show');
     }
 
-    function showReserve() {
-        document.getElementById('game-ui').style.display = 'none';
-        document.getElementById('reserve-ui').classList.remove('hidden');
-        document.getElementById('reserve-ui').style.opacity = '1';
+    function dealComplete() {
+        // 次のステップ（シャッフル〜抜き取り）へ
+        // 前回のロジックをここに繋げます
+        alert("ここから先ほど作成した「シャッフル演出」に繋がります。");
     }
 </script>
 
