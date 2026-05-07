@@ -16,17 +16,17 @@
         #entrance {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); transition: opacity 0.8s ease;
+            background: transparent; transition: opacity 0.8s ease;
         }
         .entrance-logo { font-size: 1.8rem; letter-spacing: 0.3em; margin-bottom: 40px; text-align: center; text-shadow: 0 0 25px #000; }
         .start-btn { 
             background: none; border: 1px solid #f1d592; color: #f1d592; padding: 20px 50px; 
             font-size: 1.2rem; cursor: pointer; transition: all 0.3s; letter-spacing: 0.2em;
-            background-color: rgba(0,0,0,0.6);
+            background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
         }
         .start-btn:hover { background: #f1d592; color: #000; box-shadow: 0 0 30px #f1d592; }
 
-        /* ゲームUI：グリッド配置でセンター死守 */
+        /* ナレーションエリア */
         #game-ui { width: 100%; margin-top: 5vh; display: none; opacity: 0; transition: opacity 1s; }
         #msg-container { height: 180px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         
@@ -45,15 +45,12 @@
             margin: 10px 0; transition: opacity 2s; width: 100%;
         }
 
-        #card-table { 
-            height: 420px; width: 100%; position: relative; 
-            display: grid; place-items: center; /* 物理的な中央重ね */
-            transition: opacity 2s; 
-        }
+        /* カード：絶対座標で中央固定 */
+        #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s; }
         .card { 
-            grid-area: 1 / 1; /* 全てのカードを同じ場所に重ねる */
-            width: 130px; height: 195px; perspective: 1200px; opacity: 0; pointer-events: none;
-            transition: opacity 1.5s ease;
+            width: 130px; height: 195px; position: absolute; 
+            left: 50%; margin-left: -65px; /* 7600で成功した中央寄せ */
+            perspective: 1200px; opacity: 0; pointer-events: none;
         }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
@@ -87,11 +84,11 @@
 <div id="bg-canvas"></div>
 <div id="bg-curtain"></div>
 
-<div id="status-info">Build: 7800 | Core System Active</div>
+<div id="status-info">Build: 7900 | Engine Ready</div>
 
 <div id="entrance">
     <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">Card Magic Experience</span></div>
-    <button class="start-btn" onclick="startMagicProcess()">奇跡の扉を開く</button>
+    <button class="start-btn" onclick="igniteMagic()">奇跡の扉を開く</button>
 </div>
 
 <div class="container">
@@ -112,9 +109,9 @@
 <script>
     var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
-    var table, timer, msgBox, currentB, isRun = false;
+    var table, timer, msgBox, currentB, isStarted = false;
 
-    function log(t) { document.getElementById('status-info').innerText = "Build: 7800 | " + t; }
+    function log(t) { document.getElementById('status-info').innerText = "Build: 7900 | " + t; }
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     function pushMsg(txt, isFinale = false) {
@@ -155,16 +152,15 @@
         else alert("リンクをコピーしました。\n" + url);
     }
 
-    // --- 始動エンジン ---
-    async function startMagicProcess() {
-        if(isRun) return;
-        isRun = true;
+    async function igniteMagic() {
+        if(isStarted) return;
+        isStarted = true;
 
-        // 【物理的直結】要素をその場で再取得
+        // ボタン押下時に要素を確定取得
         table = document.getElementById('card-table');
         timer = document.getElementById('timer');
         msgBox = document.getElementById('msg-container');
-        
+
         document.getElementById('entrance').style.opacity = '0';
         document.getElementById('game-ui').style.display = 'block';
         setTimeout(() => {
@@ -172,7 +168,7 @@
             document.getElementById('game-ui').style.opacity = '1';
         }, 800);
 
-        log("Running Magic...");
+        log("Status: Magic Initiated");
         await wait(1000);
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         
@@ -221,19 +217,61 @@
         await wait(1500);
 
         // --- 本物の【中抜き】シャッフル ---
-        log("Pro Middle-Pulling...");
+        // zIndexが一番高い(4)を重石として残し、idx 3(2枚目)を抜く
+        log("Status: Middle-Pull Shuffling");
         var deck = Array.from(cards).sort((a,b) => a.style.zIndex - b.style.zIndex);
-        // 【プロの手法】視覚的に一番上のカード(idx 4)は「重石」として中心に釘付け。
-        // その真下のidx 3(2枚目)を鮮やかに抜く。
-        var pulls = [{idx:3, x:290}, {idx:0, x:-290}, {idx:1, x:250}];
+        var pulls = [{idx:3, x:270}, {idx:0, x:-270}, {idx:1, x:220}];
         var topZ = 100;
         
         for (var i = 0; i < pulls.length; i++) {
             var targetIdx = pulls[i].idx;
             var c = deck[targetIdx];
             c.style.zIndex = topZ++;
-            c.style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
-            // 中から抜き出ることを強調するため、少し浮かせて大きくスライド
-            c.style.transform = "translate(" + pulls[i].x + "px, -80px) rotate(20deg)";
+            c.style.transition = "transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)";
+            c.style.transform = "translate(" + pulls[i].x + "px, -70px) rotate(15deg)";
             await wait(600);
-            c.
+            c.style.transform = "translate(0, 0) rotate(0deg)";
+            await wait(450);
+            deck.push(deck.splice(targetIdx, 1)[0]);
+        }
+        await wait(1200);
+
+        pushMsg("あなたの頭の中にあるカードを消してみせます...");
+        applyFan(deck, 145, 10);
+        await wait(1800);
+
+        // 消失（高度制限）
+        var vCard = deck[2];
+        vCard.className = 'card is-back is-visible';
+        vCard.style.zIndex = 500;
+        vCard.querySelector('.card-back').classList.add('glow');
+        await wait(1500);
+
+        var finalTx = vCard.style.getPropertyValue('--base-tx');
+        vCard.style.transition = "transform 4.0s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 2.5s, opacity 2.5s, filter 2.5s";
+        vCard.style.transform = "translate("+finalTx+", -200px) rotate(3deg)";
+        await wait(3500);
+        vCard.style.opacity = "0";
+        vCard.style.filter = "blur(30px)";
+        await wait(1000);
+
+        pushMsg("あなたのカードだけが、消えました。");
+        var remaining = deck.filter((_, idx) => idx !== 2);
+        remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = "url('"+currentB[i]+"')");
+        await wait(1200);
+
+        for (var i = 0; i < remaining.length; i++) {
+            var c = remaining[i];
+            await wait(i === 3 ? 900 : 500); 
+            c.style.transition = "transform 0.8s";
+            c.classList.remove('is-back'); 
+            c.classList.add('floating'); 
+        }
+        await wait(2000);
+        
+        // --- フィナーレ ---
+        var oldLines = msgBox.querySelectorAll('.msg-line:not(.finale)');
+        oldLines.forEach(l => l.style.opacity = '0');
+        await wait(500);
+        
+        // 縦3
