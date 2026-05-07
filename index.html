@@ -5,23 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 1. 基本：ブラックアウト完全防止 */
-        html, body { height: 100%; margin: 0; padding: 0; background-color: #000; overflow: hidden; }
-        body { color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; text-align: center; }
-        
-        .container { 
-            height: 100vh; width: 100vw; position: relative; 
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5vh; 
-            background: #000 url('SocialCover.webp') center/cover no-repeat;
-            z-index: 1;
+        /* 1. 根本的な表示トラブルを防ぐ最強のシンプル設定 */
+        html, body { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background-color: #000; color: #f1d592; 
+            font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; 
+            overflow: hidden; touch-action: none;
         }
-        .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: -1; }
-        #game-ui { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 10; }
 
-        /* 2. メッセージ */
-        #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
+        .container { 
+            width: 100%; height: 100%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            /* 背景画像と暗転を一体化し、描画エラーを防止 */
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('./SocialCover.webp') center/cover no-repeat;
+            position: relative;
+        }
+
+        #game-ui { width: 100%; z-index: 10; margin-top: 5vh; }
+
+        /* 2. メッセージ：完全中央 */
+        #msg-container { height: 160px; width: 100%; position: relative; }
         .msg-line { 
-            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            position: absolute; width: 100%; height: 100%; left: 0; top: 0;
             display: flex; align-items: center; justify-content: center;
             transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); 
             opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; 
@@ -35,16 +40,15 @@
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
 
         /* 3. カードテーブル */
-        #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; }
+        #card-table { height: 400px; width: 100%; max-width: 900px; position: relative; display: flex; justify-content: center; align-items: center; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
         
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
-        .card-back { transform: rotateY(180deg); background-image: url('back.webp'); background-color: #1a1a1a; }
+        .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 4. アニメーション */
         @keyframes float { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
@@ -52,5 +56,57 @@
         .floating { animation: float 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 70px 30px #f1d592 !important; transition: box-shadow 1.5s ease-in-out; }
 
-        /* 5. 予約UI */
-        #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600;
+        /* 4. フィナーレ */
+        #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; text-align: center; display: none; }
+        .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; }
+        
+        /* 5. 診断用ステータス */
+        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.4); z-index: 2000; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="status-info">Build: 3400 | Initializing...</div>
+
+    <div id="game-ui">
+        <div id="msg-container"></div>
+        <div id="timer">8</div>
+        <div id="card-table"></div>
+    </div>
+
+    <div id="reserve-ui">
+        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
+    </div>
+</div>
+
+<script>
+    // --- データ ---
+    var setA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
+    var setB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    var currentA = [], currentB = [], isAdmin = false;
+    var table, timer, msgBox;
+
+    function updateLog(txt) {
+        var el = document.getElementById('status-info');
+        if(el) el.innerText = "Build: 3400 | " + txt;
+    }
+
+    // --- 起動 ---
+    window.onload = function() {
+        table = document.getElementById('card-table');
+        timer = document.getElementById('timer');
+        msgBox = document.getElementById('msg-container');
+
+        updateLog("System Ready");
+        
+        isAdmin = window.location.search.indexOf('mode=gioia_admin') !== -1;
+        if (!isAdmin && localStorage.getItem('gioia_magic_played')) {
+            showReserve();
+        } else {
+            if (isAdmin) localStorage.removeItem('gioia_magic_played');
+            currentA = shuffle([...setA]);
+            currentB = shuffle([...setB]);
+            startMagic();
+        }
+    };
