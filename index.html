@@ -5,24 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza</title>
     <style>
-        /* 1. 基本レイアウト：ブラックアウト対策 */
+        /* 1. レイアウト基盤 */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 1; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 2; }
         
         .container { position: relative; width: 100vw; height: 100vh; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 
-        /* エントランス（物理ボタン） */
+        /* 診断用ステータスバー：検証中は z-index 10000 で最前面に */
+        #status-info { 
+            position: fixed; bottom: 12px; right: 12px; 
+            font-size: 10px; color: #f1d592; 
+            z-index: 10000; /* エントランスより上に固定 */
+            background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; border-radius: 4px; 
+            transition: opacity 1.5s ease;
+            opacity: 1; /* ★検証中。公開時は 0 に設定 */
+        }
+
+        /* エントランス（物理ボタン）：背景を透明にして本体の背景を見せる */
         #entrance {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: #000; transition: opacity 0.8s ease;
+            background: transparent; /* ★透明に修正。背景画像を復活 */
+            transition: opacity 0.8s ease;
         }
-        .entrance-logo { font-size: 1.8rem; letter-spacing: 0.3em; margin-bottom: 40px; text-align: center; text-shadow: 0 0 15px rgba(241,213,146,0.5); }
+        .entrance-logo { font-size: 1.8rem; letter-spacing: 0.3em; margin-bottom: 40px; text-align: center; text-shadow: 0 0 25px #000, 0 0 15px rgba(241,213,146,0.5); }
         .start-btn { 
             background: none; border: 1px solid #f1d592; color: #f1d592; padding: 20px 50px; 
             font-size: 1.2rem; cursor: pointer; transition: all 0.3s; letter-spacing: 0.2em;
-            box-shadow: 0 0 10px rgba(241,213,146,0.2);
+            box-shadow: 0 0 10px rgba(241,213,146,0.2); background-color: rgba(0,0,0,0.6); /* ボタンの文字を読みやすく */
         }
         .start-btn:hover { background: #f1d592; color: #000; box-shadow: 0 0 30px #f1d592; }
 
@@ -60,10 +71,9 @@
         .glow { box-shadow: 0 0 85px 35px #f1d592 !important; transition: box-shadow 2s ease-in-out; }
 
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
-        #reserve-ui { position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 3000; text-align: center; display: none; transition: 2s; }
+        #reserve-ui { position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s; }
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.3rem; }
         
-        #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 5000; background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; }
     </style>
 </head>
 <body>
@@ -71,13 +81,14 @@
 <div id="bg-canvas"></div>
 <div id="bg-curtain"></div>
 
+<div id="status-info">Build: 7400 | Gate Ready</div>
+
 <div id="entrance">
-    <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; letter-spacing: 0.1em; color: #fff; opacity: 0.6;">Card Magic Experience</span></div>
+    <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; letter-spacing: 0.1em; color: #fff; opacity: 0.8;">Card Magic Experience</span></div>
     <button class="start-btn" onclick="ignite(this)">マジックを体験する</button>
 </div>
 
 <div class="container">
-    <div id="status-info">Build: 7300 | Core Ready</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -92,4 +103,205 @@
 
 <script>
     var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
-    var SET_B = ['./
+    var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    var table, timer, msgBox, currentB, statusInfo;
+
+    // 診断用：DOM取得
+    statusInfo = document.getElementById('status-info');
+
+    function log(t) { if(statusInfo) statusInfo.innerText = "Build: 7400 | " + t; }
+    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    function pushMsg(txt) {
+        if(!msgBox) return;
+        var el = document.createElement('div');
+        el.className = 'msg-line bottom';
+        el.innerHTML = txt;
+        msgBox.appendChild(el);
+        void el.offsetWidth;
+        var lines = msgBox.querySelectorAll('.msg-line');
+        if(lines.length > 3) lines[0].remove();
+        lines.forEach(function(l, idx) {
+            if(idx === lines.length - 1) { setTimeout(() => l.className = 'msg-line center', 50); }
+            else if(idx === lines.length - 2) { l.className = 'msg-line top'; }
+            else { l.className = 'msg-line exit'; }
+        });
+    }
+
+    function applyFan(cards, spacing, rotUnit) {
+        cards.forEach(function(c, i) {
+            var diff = i - (cards.length - 1) / 2;
+            var tx = diff * spacing;
+            var ty = Math.abs(diff) * Math.abs(diff) * 15;
+            var rot = diff * rotUnit;
+            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
+            c.style.opacity = 1;
+            c.style.setProperty('--base-tx', tx + "px");
+            c.style.setProperty('--base-ty', ty + "px");
+            c.style.setProperty('--base-rot', rot + "deg");
+            c.style.transform = "translateX(calc(-50% + " + tx + "px)) translateY(" + ty + "px) rotate(" + rot + "deg)";
+        });
+    }
+
+    // --- 究極着火エンジン ---
+    async function ignite(btn) {
+        // 診断StatusのDOMも更新
+        statusInfo = document.getElementById('status-info');
+
+        // 1. 部品をその場で強制取得
+        table = document.getElementById('card-table');
+        timer = document.getElementById('timer');
+        msgBox = document.getElementById('msg-container');
+        var entrance = document.getElementById('entrance');
+        var gameUI = document.getElementById('game-ui');
+
+        if (!table || !msgBox) {
+            alert("システムエラー：画面を更新してください");
+            return;
+        }
+
+        log("Igniting Sequence...");
+
+        // 2. 画面切り替え（同期実行）
+        entrance.style.opacity = '0';
+        gameUI.style.display = 'block';
+        setTimeout(() => { 
+            entrance.style.display = 'none'; 
+            gameUI.style.opacity = '1';
+        }, 800);
+
+        // 3. マジック本編開始
+        await wait(1000);
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+        await wait(1800);
+
+        function shuffleArr(arr) {
+            for (var i = arr.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+            }
+            return arr;
+        }
+
+        var currentA = shuffleArr([...SET_A]);
+        currentB = shuffleArr([...SET_B]);
+        
+        currentA.forEach(function(img, i) {
+            var c = document.createElement('div');
+            c.className = 'card is-back';
+            c.style.zIndex = i;
+            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+img+'\')"></div><div class="card-face card-back"></div></div>';
+            table.appendChild(c);
+            setTimeout(() => c.classList.add('is-visible'), i * 150);
+        });
+        await wait(2200);
+
+        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
+        var cards = document.querySelectorAll('.card');
+        applyFan(cards, 165, 12);
+        await wait(2500);
+
+        pushMsg("声に出さずあなたの頭の中だけで、一枚をしっかりと念じてください。");
+        await wait(2500);
+
+        for (var i = 0; i < cards.length; i++) {
+            cards[i].classList.remove('is-back');
+            cards[i].classList.add('floating');
+            await wait(250);
+        }
+
+        timer.style.opacity = 1;
+        for (var i = 8; i >= 0; i--) { timer.innerText = i; if(i===0) break; await wait(950); }
+        timer.style.opacity = 0;
+
+        log("Gathering");
+        cards.forEach(function(c) {
+            c.className = 'card is-back is-visible'; 
+            c.style.animation = "none";
+            void c.offsetWidth;
+            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
+            c.style.transform = "translateX(-50%) translateY(0) rotate(0deg)";
+        });
+        await wait(1500);
+
+        // --- プロの中抜きシャッフル ---
+        log("Pro Shuffle");
+        var deck = Array.from(cards).sort((a,b) => a.style.zIndex - b.style.zIndex);
+        var pullActions = [{idx:3, x:240}, {idx:0, x:-240}, {idx:1, x:200}];
+        var topZ = 100;
+        
+        for (var i = 0; i < pullActions.length; i++) {
+            var targetIdx = pullActions[i].idx;
+            var c = deck[targetIdx];
+            c.style.zIndex = topZ++;
+            c.style.transition = "transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1)";
+            c.style.transform = "translateX(calc(-50% + " + pullActions[i].x + "px)) translateY(-65px) rotate(15deg)";
+            await wait(600);
+            c.style.transform = "translateX(-50%) translateY(0) rotate(0deg)";
+            await wait(450);
+            deck.push(deck.splice(targetIdx, 1)[0]);
+        }
+        await wait(800);
+
+        pushMsg("あなたの頭の中にあるカードを消してみせます...");
+        applyFan(deck, 145, 10);
+        await wait(1800);
+
+        // --- 消失 ---
+        log("Vanishing");
+        var vCard = deck[2];
+        vCard.className = 'card is-back is-visible';
+        vCard.style.zIndex = 500;
+        vCard.querySelector('.card-back').classList.add('glow');
+        await wait(1500);
+
+        var finalTx = vCard.style.getPropertyValue('--base-tx');
+        vCard.style.transition = "transform 4.0s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 2.5s, opacity 2.5s";
+        vCard.style.transform = "translateX(calc(-50% + " + finalTx + ")) translateY(-420px) rotate(0deg)";
+        await wait(4200);
+
+        vCard.style.transition = "transform 3.0s ease-in, opacity 2.5s ease-in, filter 2.5s ease-in";
+        vCard.style.opacity = "0";
+        vCard.style.filter = "blur(50px)";
+        vCard.style.transform = "translateX(calc(-50% + " + finalTx + ")) translateY(-600px) scale(1.6)";
+        await wait(3000);
+
+        pushMsg("あなたのカードだけが、消えました。");
+        var remaining = deck.filter((_, idx) => idx !== 2);
+        remaining.forEach(function(c, i){
+            c.querySelector('.card-face.card-front').style.backgroundImage = "url('"+currentB[i]+"')";
+        });
+        await wait(1600);
+
+        for (var i = 0; i < remaining.length; i++) {
+            var c = remaining[i];
+            if (i === 3) await wait(2600); else await wait(800);
+            c.style.transition = "transform 0.8s, opacity 0.5s";
+            c.classList.remove('is-back'); 
+            c.classList.add('floating'); 
+        }
+
+        await wait(3500);
+        pushMsg("不思議を感じましたか？");
+        await wait(3000);
+        pushMsg("Gran GIOIA Ginzaでは、");
+        await wait(3000);
+        pushMsg("「このレベルではない奇跡」をお届けします。");
+
+        await wait(6500);
+        table.style.transition = "opacity 2.5s";
+        table.style.opacity = 0;
+        await wait(2500);
+        
+        // Statusも静かに消す
+        if(statusInfo) statusInfo.style.opacity = '0';
+        
+        document.getElementById('game-ui').style.display = 'none';
+        var r = document.getElementById('reserve-ui');
+        r.style.display = 'block';
+        setTimeout(() => r.style.opacity = 1, 100);
+        log("Magic: Complete");
+    }
+</script>
+</body>
+</html>
