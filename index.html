@@ -8,18 +8,8 @@
         /* 1. 描画エラーを物理的に防ぐ堅牢なレイアウト */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #0a0a0a; color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; overflow: hidden; }
         
-        /* 背景画像レイヤー */
-        .bg-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('SocialCover.webp') center/cover no-repeat;
-            z-index: 1;
-        }
-        /* 暗転レイヤー（背景画像の上に重ねる） */
-        .overlay-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
-            z-index: 2;
-        }
+        .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('SocialCover.webp') center/cover no-repeat; z-index: 1; }
+        .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 2; }
 
         .container { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
         #game-ui { width: 100%; margin-top: 5vh; }
@@ -65,7 +55,7 @@
 <div class="overlay-layer"></div>
 
 <div class="container">
-    <div id="status-info">Build: 4300 | Ready</div>
+    <div id="status-info">Build: 4400 | Initializing...</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -74,4 +64,30 @@
     </div>
 
     <div id="reserve-ui">
-        <button class="btn" onclick="location.href='https://ginzagioia
+        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
+    </div>
+</div>
+
+<script>
+    var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
+    var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    var table, timer, msgBox, currentB;
+
+    function log(t) { document.getElementById('status-info').innerText = "Build: 4400 | " + t; }
+
+    function shuffle(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+        }
+        return arr;
+    }
+    function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+    function pushMsg(txt) {
+        var el = document.createElement('div');
+        el.className = 'msg-line bottom';
+        el.innerHTML = txt;
+        msgBox.appendChild(el);
+        var lines = msgBox.querySelectorAll('.msg-line');
+        if(lines.length > 3) lines[0].
