@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 1. ブラックアウトを根絶するスタイル */
+        /* ブラックアウト・フリーズ対策 */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
         .container { 
             width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
@@ -47,7 +47,7 @@
 <body>
 
 <div class="container">
-    <div id="status-info">Build: 3900 | Loaded</div>
+    <div id="status-info">Build: 4000 | Ignited</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -61,87 +61,74 @@
 </div>
 
 <script>
-    // --- 1. グローバル設定 ---
-    var setA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
-    var setB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
-    var currentA, currentB, table, timer, msgBox;
+    // --- 1. グローバル定数 ---
+    var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
+    var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    var table, timer, msgBox, currentB;
 
     function updateLog(t) { 
         var el = document.getElementById('status-info');
-        if(el) el.innerText = "Build: 3900 | " + t; 
+        if(el) el.innerText = "Build: 4000 | " + t; 
     }
 
-    // --- 2. メインロジック ---
+    // --- 2. ユーティリティ ---
+    function shuffle(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+        }
+        return arr;
+    }
+    function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+    function pushMsg(txt) {
+        var el = document.createElement('div');
+        el.className = 'msg-line bottom';
+        el.innerHTML = txt;
+        msgBox.appendChild(el);
+        
+        var lines = msgBox.querySelectorAll('.msg-line');
+        if(lines.length > 3) lines[0].remove();
+
+        lines.forEach(function(l, idx) {
+            if(idx === lines.length - 1) {
+                setTimeout(function(){ l.className = 'msg-line center'; }, 50);
+            } else if(idx === lines.length - 2) {
+                l.className = 'msg-line top';
+            } else {
+                l.className = 'msg-line exit';
+            }
+        });
+    }
+
+    function applyFan(cards, spacing, rotUnit) {
+        cards.forEach(function(c, i) {
+            var diff = i - (cards.length - 1) / 2;
+            var tx = diff * spacing;
+            var ty = Math.abs(diff) * Math.abs(diff) * 15;
+            var rot = diff * rotUnit;
+            c.style.transition = "transform 1.0s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
+            c.style.opacity = 1;
+            c.style.left = "calc(50% - 65px)";
+            c.style.setProperty('--base-tx', tx + "px");
+            c.style.setProperty('--base-ty', ty + "px");
+            c.style.setProperty('--base-rot', rot + "deg");
+            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+        });
+    }
+
+    // --- 3. メインマジック ---
     async function startMagic() {
-        updateLog("Sequence Ready");
-        await wait(1000);
+        updateLog("Magic Started");
+        await wait(500);
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await wait(1500);
 
         // 登場
-        currentA = shuffle([...setA]);
-        currentB = shuffle([...setB]);
+        var currentA = shuffle([...SET_A]);
+        currentB = shuffle([...SET_B]);
         currentA.forEach(function(img, i) {
             var c = document.createElement('div');
             c.className = 'card is-back';
             c.style.zIndex = i;
-            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+img+'\')"></div><div class="card-face card-back"></div></div>';
-            table.appendChild(c);
-            setTimeout(function(){ c.classList.add('is-visible'); }, i * 150);
-        });
-        await wait(2000);
-
-        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
-        var cards = document.querySelectorAll('.card');
-        applyFan(cards, 165, 12);
-        await wait(2000);
-
-        pushMsg("声に出さずあなたの頭の中だけで、一枚をしっかりと念じてください。");
-        await wait(3000);
-
-        for (var i = 0; i < cards.length; i++) {
-            cards[i].classList.remove('is-back');
-            cards[i].classList.add('floating');
-            await wait(200);
-        }
-
-        timer.style.opacity = 1;
-        for (var i = 8; i >= 0; i--) { timer.innerText = i; if(i===0) break; await wait(900); }
-        timer.style.opacity = 0;
-
-        // --- 優雅な集合（1.2s） ---
-        updateLog("Collecting...");
-        cards.forEach(function(c) {
-            c.style.animation = "none"; 
-            c.classList.remove('floating');
-            c.classList.add('is-back');
-            void c.offsetWidth; // Force Reflow
-            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
-            c.style.transform = "translate(0, 0) rotate(0deg)";
-        });
-        await wait(1400);
-
-        // --- プロの中抜きシャッフル（2枚目抜き） ---
-        updateLog("Shuffle...");
-        var deck = Array.from(cards).sort(function(a,b){ return a.style.zIndex - b.style.zIndex; });
-        // 1. 上から2枚目(idx 3)を右へ 2. 一番下(idx 0)を左へ 3. 中ほど(idx 1)を右へ
-        var sequence = [{idx:3, x:165}, {idx:0, x:-165}, {idx:1, x:165}];
-        var topZ = 100;
-        for (var i = 0; i < sequence.length; i++) {
-            var c = deck[sequence[i].idx];
-            c.style.zIndex = topZ++;
-            c.style.transition = "transform 0.5s ease-out";
-            c.style.transform = "translate("+sequence[i].x+"px, -50px) rotate(12deg)";
-            await wait(550);
-            c.style.transform = "translate(0, 0) rotate(0deg)";
-            await wait(450);
-            deck.push(deck.splice(sequence[i].idx, 1)[0]);
-        }
-        await wait(800);
-
-        pushMsg("あなたの頭の中にあるカードを消してみせます...");
-        applyFan(deck, 140, 9);
-        await wait(1500);
-
-        // --- 黄金の消失（4s上昇・高度維持） ---
-        updateLog("Rising...");
+            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url
