@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gran GIOIA Ginza - Digital Magic</title>
     <style>
-        /* 基本レイアウト */
+        /* 基本レイアウト：PCでのセンタリングを絶対固定 */
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
         
-        /* 1. センタリングの完全固定 */
         .container { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 100vw; height: 100vh;
@@ -16,62 +15,63 @@
             background: radial-gradient(circle, #2a2a2a 0%, #000 100%); 
         }
         
-        /* 2. メッセージ：PCで縦長にならないよう幅を死守 */
-        #msg-container { height: 180px; width: 100%; min-width: 800px; position: relative; z-index: 100; overflow: visible; }
+        /* 1. メッセージ：PCでの縦並びを物理的に防止 */
+        #msg-container { height: 180px; width: 100vw; min-width: 800px; position: relative; z-index: 100; overflow: visible; display: flex; justify-content: center; align-items: center; }
         .msg-line { 
             position: absolute; width: 100%; left: 0; 
             transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); 
             opacity: 0; font-size: 1.5rem; font-weight: normal; line-height: 1.6; letter-spacing: 0.15em; 
-            text-shadow: 0 0 20px rgba(0,0,0,1);
+            text-shadow: 0 0 25px rgba(0,0,0,1);
             white-space: nowrap; /* 強制的に1行にする */
         }
         .msg-line.center { opacity: 1; transform: translateY(0); }
-        .msg-line.top { opacity: 0.3; transform: translateY(-60px) scale(0.9); }
-        .msg-line.exit { opacity: 0; transform: translateY(-120px); }
-        .msg-line.bottom { opacity: 0; transform: translateY(60px); }
+        .msg-line.top { opacity: 0.3; transform: translateY(-70px) scale(0.9); }
+        .msg-line.exit { opacity: 0; transform: translateY(-140px); }
+        .msg-line.bottom { opacity: 0; transform: translateY(70px); }
 
-        /* 3. カード演出エリア */
+        /* 2. カード演出エリア */
         #card-table { display: flex; justify-content: center; align-items: center; height: 350px; position: relative; width: 100%; max-width: 900px; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; filter: blur(10px); }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; filter: blur(0); }
 
-        /* スタック時の影（重なりを綺麗に） */
+        /* スタック時の影（重なりを美しく） */
         .card.stacked { box-shadow: none !important; }
         .card.stacked .card-face { box-shadow: 0 2px 8px rgba(0,0,0,0.8) !important; }
 
-        /* 黄金の輝きエフェクト */
+        /* 黄金の輝き：消失時に激しく発光 */
         .golden-glow {
-            box-shadow: 0 0 60px 20px rgba(241, 213, 146, 1) !important;
-            filter: brightness(1.3) drop-shadow(0 0 20px #f1d592) !important;
-            z-index: 500 !important;
+            box-shadow: 0 0 80px 25px rgba(241, 213, 146, 1) !important;
+            filter: brightness(1.4) drop-shadow(0 0 25px #f1d592) !important;
+            z-index: 1000 !important;
         }
 
-        /* 浮遊・消失 */
+        /* 浮遊・消失アニメーション */
         @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--base-rot)); } 50% { transform: translateY(-12px) rotate(calc(var(--base-rot) + 2deg)); } }
         .floating { animation: float 3.5s infinite ease-in-out; }
-        .juwa-out { animation: juwa-out 3.0s forwards; }
-        @keyframes juwa-out { from { opacity: 1; filter: blur(0) brightness(1.5); transform: scale(1.1); } to { opacity: 0; filter: blur(60px) brightness(3); transform: scale(1.8); } }
+        .juwa-out { animation: juwa-out 3.5s forwards; }
+        @keyframes juwa-out { from { opacity: 1; filter: blur(0) brightness(1.5); transform: scale(1.1); } to { opacity: 0; filter: blur(80px) brightness(4); transform: scale(2.0); } }
 
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241, 213, 146, 0.4); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 4. タイマー（QSと絶対に被らない位置） */
+        /* 3. タイマー：QSのちょうど真上に位置を固定 */
         #timer { 
-            font-size: 7rem; font-weight: bold; color: #fff; position: absolute; 
-            top: 15%; /* カードよりかなり上に配置 */
+            font-size: 7.5rem; font-weight: bold; color: #fff; position: absolute; 
+            top: 25%; /* QSの真上になるよう調整 */
             left: 50%; transform: translate(-50%, -50%); 
             opacity: 0; pointer-events: none; z-index: 600; font-family: serif;
             text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 50px rgba(0,0,0,1);
         }
         
-        #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.5); z-index: 2000; }
+        #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.3); z-index: 2000; }
         #orientation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; visibility: hidden; opacity: 0; }
         @media screen and (orientation: portrait) { #orientation-overlay { visibility: visible; opacity: 1; } }
         .hidden { display: none !important; }
         #reserve-ui { padding: 40px; transition: 2s; opacity: 0; }
-        .btn { background: #f1d592; border: none; padding: 15px 45px; border-radius: 40px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.1rem; margin-top: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .btn { background: #f1d592; border: none; padding: 15px 45px; border-radius: 40px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.1rem; margin-top: 30px; box-shadow: 0 5px 25px rgba(0,0,0,0.5); transition: 0.3s; }
+        .btn:hover { background: #fff; transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -81,7 +81,7 @@
     <div style="font-size: 3rem; margin-top: 20px;">🔄</div>
 </div>
 
-<div id="version-info">Ver. Final | Build 14:00</div>
+<div id="version-info">Ver. Final | Build 14:15</div>
 
 <div class="container">
     <div id="game-ui">
@@ -169,6 +169,7 @@
 
         for (let c of cards) { c.classList.remove('is-back'); c.classList.add('floating'); await sleep(250); }
 
+        // カウントダウン開始（QSの真上）
         timerDisplay.style.opacity = 1;
         for (let i = 8; i >= 0; i--) { timerDisplay.innerText = i; if (i === 0) break; await sleep(900); }
 
@@ -183,31 +184,30 @@
         await sleep(1000);
         pushMsg("シャッフルしています…");
 
-        // --- リアル・ディーラーシャッフル (右・左・右) ---
+        // --- ディーラー・シャッフル (右・左・右) ---
         const moveCard = async (index, direction) => {
             const c = cards[index];
-            const originalZ = c.style.zIndex;
             c.style.zIndex = 500;
             const xMove = direction === 'right' ? 180 : -180;
             c.style.transition = "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)";
             c.style.left = `calc(50% - 65px + ${xMove}px)`;
             c.style.transform = "rotate(10deg) translateY(-20px)";
             await sleep(550);
-            c.style.zIndex = 400; // 重なり順を上へ
+            c.style.zIndex = 400;
             c.style.left = 'calc(50% - 65px)';
             c.style.transform = "rotate(0deg) translateY(0px)";
             await sleep(500);
         };
-
         await moveCard(4, 'right');
         await moveCard(3, 'left');
         await moveCard(2, 'right');
 
         await sleep(800);
+        // セリフ表示
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
         
-        // 5枚に広げる
-        await sleep(1000);
+        // 2. 五枚を広げる (ファン状態)
+        await sleep(1500);
         cards.forEach((c, i) => {
             const offset = (i - 2) * 125;
             const rot = (i - 2) * 4;
@@ -216,19 +216,22 @@
             c.style.transform = `rotate(${rot}deg)`;
         });
 
-        // --- 黄金の消失演出 ---
+        // 3. 真ん中の一枚が黄金に光り、昇天
         await sleep(1500);
-        const vanishCard = cards[2]; // 真ん中
+        const vanishCard = cards[2]; // 中央
         vanishCard.classList.add('golden-glow');
         vanishCard.style.zIndex = 1000;
-        vanishCard.style.transition = "top 4.5s cubic-bezier(0.4, 0, 0.2, 1), transform 3.0s, opacity 2.0s, filter 2.0s"; 
-        vanishCard.style.top = '-200px'; 
+        // 昇天：さらにゆっくり、高く (5.0s)
+        vanishCard.style.transition = "top 5.0s cubic-bezier(0.4, 0, 0.2, 1), transform 3.0s, box-shadow 2.0s"; 
+        vanishCard.style.top = '-220px'; 
         vanishCard.style.transform = 'scale(1.2)';
         
-        await sleep(4000); 
+        await sleep(4500); 
+        // ジュワッと消失 (余韻を長めに)
         vanishCard.classList.add('juwa-out');
         await sleep(3500);
 
+        // --- 4. 消失確認 ---
         pushMsg("あなたのカードだけが、消えました。");
         table.innerHTML = '';
         cardsSetB.forEach((img, i) => {
