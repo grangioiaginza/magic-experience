@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 1. 描画エラーを物理的に防ぐ堅牢なレイアウト */
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #0a0a0a; color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; overflow: hidden; }
-        
+        /* 1. ブラックアウト対策：堅牢なレイアウト */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #050505; color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; overflow: hidden; }
         .bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('SocialCover.webp') center/cover no-repeat; z-index: 1; }
         .overlay-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 2; }
-
         .container { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
         #game-ui { width: 100%; margin-top: 5vh; }
 
@@ -55,7 +53,7 @@
 <div class="overlay-layer"></div>
 
 <div class="container">
-    <div id="status-info">Build: 4400 | Initializing...</div>
+    <div id="status-info">Build: 4500 | Ignition</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -73,16 +71,9 @@
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
     var table, timer, msgBox, currentB;
 
-    function log(t) { document.getElementById('status-info').innerText = "Build: 4400 | " + t; }
+    function log(t) { document.getElementById('status-info').innerText = "Build: 4500 | " + t; }
 
-    function shuffle(arr) {
-        for (var i = arr.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-        }
-        return arr;
-    }
-    function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     function pushMsg(txt) {
         var el = document.createElement('div');
@@ -90,4 +81,47 @@
         el.innerHTML = txt;
         msgBox.appendChild(el);
         var lines = msgBox.querySelectorAll('.msg-line');
-        if(lines.length > 3) lines[0].
+        if(lines.length > 3) lines[0].remove();
+        lines.forEach(function(l, idx) {
+            if(idx === lines.length - 1) { setTimeout(() => l.className = 'msg-line center', 50); }
+            else if(idx === lines.length - 2) { l.className = 'msg-line top'; }
+            else { l.className = 'msg-line exit'; }
+        });
+    }
+
+    function applyFan(cards, spacing, rotUnit) {
+        cards.forEach(function(c, i) {
+            var diff = i - (cards.length - 1) / 2;
+            var tx = diff * spacing;
+            var ty = Math.abs(diff) * Math.abs(diff) * 15;
+            var rot = diff * rotUnit;
+            c.style.transition = "transform 1.0s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
+            c.style.opacity = 1;
+            c.style.left = "calc(50% - 65px)";
+            c.style.setProperty('--base-tx', tx + "px");
+            c.style.setProperty('--base-ty', ty + "px");
+            c.style.setProperty('--base-rot', rot + "deg");
+            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+        });
+    }
+
+    // --- 奇跡の本体 ---
+    async function performMagic() {
+        log("Magic Sequence Injected");
+        // 第一声を即座に。awaitを挟まない。
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+        await wait(1500);
+
+        function shuffle(arr) {
+            for (var i = arr.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+            }
+            return arr;
+        }
+
+        var currentA = shuffle([...SET_A]);
+        currentB = shuffle([...SET_B]);
+        currentA.forEach(function(img, i) {
+            var c = document.createElement('div');
+            c.className =
