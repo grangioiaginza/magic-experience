@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gran GIOIA Ginza -Card Magic-</title>
+    <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
         /* 1. 基本レイアウト */
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
@@ -15,7 +15,7 @@
         .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1; }
         #game-ui { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-        /* 2. メッセージ：PC完全中央 */
+        /* 2. メッセージ：完全中央 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; left: 0; top: 0; width: 100%; height: 100%;
@@ -56,9 +56,6 @@
         
         .juwa-in { animation: juwa-in 1.2s forwards; }
         @keyframes juwa-in { from { opacity: 0; filter: blur(20px); } to { opacity: 1; filter: blur(0); } }
-        
-        .juwa-out { animation: juwa-out 3.0s forwards; } 
-        @keyframes juwa-out { from { opacity: 1; filter: blur(0); transform: scale(1); } to { opacity: 0; filter: blur(45px); transform: scale(1.6); } }
 
         /* 黄金の輝き */
         .glow { box-shadow: 0 0 60px 25px #f1d592 !important; transition: box-shadow 1.5s ease-in-out; }
@@ -73,7 +70,7 @@
 </head>
 <body>
 
-<div id="status-info">Build: 2730 | Initializing...</div>
+<div id="status-info">Build: 2745 | Ready</div>
 
 <div class="container">
     <div id="game-ui">
@@ -87,23 +84,19 @@
 </div>
 
 <script>
-    // 1. グローバル定数
     var fixedSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     var fixedSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
     var currentA = [], currentB = [], isAdmin = false;
     var table, timerDisplay, msgContainer, statusDisplay;
 
-    // 進捗報告用
     function updateStatus(msg, isError = false) {
         if (!statusDisplay) statusDisplay = document.getElementById('status-info');
         if (statusDisplay) {
-            statusDisplay.innerText = (isError ? "Error: " : "Status: ") + msg;
+            statusDisplay.innerText = "Build: 2745 | " + msg;
             if (isError) statusDisplay.style.color = "#ff4d4d";
         }
-        console.log(msg);
     }
 
-    // 2. 初期化
     window.onload = function() {
         try {
             table = document.getElementById('card-table');
@@ -111,218 +104,5 @@
             msgContainer = document.getElementById('msg-container');
             statusDisplay = document.getElementById('status-info');
 
-            updateStatus("Checking Mode...");
             var urlParams = new URLSearchParams(window.location.search);
-            isAdmin = urlParams.get('mode') === 'gioia_admin';
-
-            if (!isAdmin && localStorage.getItem('gioia_magic_played')) {
-                updateStatus("Already Played.");
-                showReserveImmediately();
-            } else {
-                if (isAdmin) localStorage.removeItem('gioia_magic_played');
-                setupCards();
-                updateStatus("Starting Magic...");
-                startMagic().catch(e => updateStatus("Sequence: " + e.message, true));
-            }
-        } catch (e) {
-            updateStatus("Load: " + e.message, true);
-        }
-    };
-
-    function setupCards() {
-        currentA = shuffle([...fixedSetA]);
-        currentB = shuffle([...fixedSetB]);
-    }
-
-    function shuffle(array) {
-        for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var temp = array[i]; array[i] = array[j]; array[j] = temp;
-        }
-        return array;
-    }
-
-    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
-
-    function pushMsg(text) {
-        var lines = msgContainer.querySelectorAll('.msg-line');
-        lines.forEach(l => {
-            if (l.classList.contains('top')) { l.classList.replace('top', 'exit'); setTimeout(() => l.remove(), 1200); }
-            else if (l.classList.contains('center')) { l.classList.replace('center', 'top'); }
-        });
-        var el = document.createElement('div');
-        el.className = 'msg-line bottom';
-        el.innerHTML = text;
-        msgContainer.appendChild(el);
-        el.offsetHeight; 
-        setTimeout(() => el.classList.replace('bottom', 'center'), 100);
-    }
-
-    function applyFanLayout(cards, spacing, rotateUnit, duration = "0.8s") {
-        cards.forEach((c, i) => {
-            var diff = i - (cards.length - 1) / 2;
-            var tx = diff * spacing;
-            var ty = Math.abs(diff) * Math.abs(diff) * 15;
-            var rot = diff * rotateUnit;
-
-            c.style.transition = `all ${duration} cubic-bezier(0.19, 1, 0.22, 1)`;
-            c.style.opacity = 1;
-            c.style.left = `calc(50% - 65px)`;
-            c.style.setProperty('--base-tx', tx + "px");
-            c.style.setProperty('--base-ty', ty + "px");
-            c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
-        });
-    }
-
-    async function performMagicShuffle(cards) {
-        var deck = Array.from(cards);
-        var sequence = [{ pullIdx: 0, x: 140, r: 12 }, { pullIdx: 1, x: -140, r: -12 }, { pullIdx: 0, x: 140, r: 12 }];
-        var maxZ = 50;
-        for (var step of sequence) {
-            var c = deck[step.pullIdx];
-            c.style.zIndex = maxZ++; 
-            c.style.transition = "all 0.5s ease-out";
-            c.style.transform = `translate(${step.x}px, -40px) rotate(${step.r}deg)`;
-            await sleep(500);
-            c.style.transform = `translate(0, 0) rotate(0deg)`;
-            await sleep(400);
-            deck.push(deck.splice(step.pullIdx, 1)[0]);
-        }
-        return deck;
-    }
-
-    async function startMagic() {
-        await sleep(1000);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await sleep(1000);
-
-        // 1. 登場
-        currentA.forEach((img, i) => {
-            var card = document.createElement('div');
-            card.className = 'card is-back juwa-in';
-            card.style.left = 'calc(50% - 65px)';
-            card.style.zIndex = i;
-            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
-            table.appendChild(card);
-        });
-        await sleep(1500);
-
-        // 2. 配る（ファン）
-        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
-        var cards = document.querySelectorAll('.card');
-        cards.forEach(c => { c.classList.remove('juwa-in'); c.classList.add('is-visible'); });
-        applyFanLayout(cards, 165, 12);
-        await sleep(2000);
-
-        pushMsg("スマートフォンのマイクが、<br>あなたの声を拾うかもしれません。");
-        await sleep(2500);
-        pushMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
-        await sleep(2500);
-
-        // 3. 表を向く & フワフワ
-        for (var c of cards) { 
-            c.classList.remove('is-back'); 
-            c.classList.add('floating'); 
-            await sleep(200); 
-        }
-
-        // 4. カウントダウン
-        timerDisplay.style.opacity = 1;
-        for (var i = 8; i >= 0; i--) { timerDisplay.innerText = i; if (i === 0) break; await sleep(900); }
-        timerDisplay.style.opacity = 0;
-
-        // 5. 集合（ファン状態から逆再生のように左右から1.2秒かけて戻る）
-        cards.forEach(c => {
-            c.classList.remove('floating'); // 浮遊停止
-            c.classList.add('is-back');    // 裏返す
-            // 弧を描いて戻るのではなく、中心へスッと集める
-            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
-            c.style.transform = "translate(0, 0) rotate(0deg)";
-            c.style.setProperty('--base-tx', "0px");
-            c.style.setProperty('--base-ty', "0px");
-            c.style.setProperty('--base-rot', "0deg");
-        });
-        await sleep(1400);
-
-        // 6. シャッフル（抜き取り式）
-        var sortedCards = Array.from(cards).sort((a, b) => a.style.zIndex - b.style.zIndex);
-        var newDeck = await performMagicShuffle(sortedCards);
-        await sleep(600);
-
-        // 7. 再ファン（裏向き）
-        pushMsg("あなたの頭の中にあるカードを消してみせます...");
-        applyFanLayout(newDeck, 140, 9);
-        await sleep(1500);
-
-        // 8. 黄金の消失（真ん中が光り、4秒かけて上昇）
-        var vanishCard = newDeck[2]; 
-        vanishCard.classList.remove('floating'); 
-        vanishCard.style.zIndex = 300;
-        
-        // 輝きを裏面に付与
-        var faceBack = vanishCard.querySelector('.card-back');
-        faceBack.classList.add('glow');
-        await sleep(1500);
-
-        // ★スロー上昇（4秒）
-        // transformの値を直接書き換えて、高さを確保
-        var currentTx = vanishCard.style.getPropertyValue('--base-tx');
-        vanishCard.style.transition = "transform 4.0s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 2s, opacity 2s";
-        vanishCard.style.transform = `translate(${currentTx}, -380px) rotate(0deg)`;
-        
-        await sleep(4500);
-        vanishCard.classList.add('juwa-out');
-        await sleep(3000);
-
-        // 9. 開示
-        pushMsg("あなたのカードだけが、消えました。");
-        table.innerHTML = '';
-        currentB.forEach((img, i) => {
-            var card = document.createElement('div');
-            card.className = 'card is-back is-visible';
-            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
-            table.appendChild(card);
-        });
-
-        await sleep(200);
-        var finalCards = document.querySelectorAll('.card');
-        applyFanLayout(finalCards, 165, 12);
-        await sleep(1000);
-        for (var i = 0; i < finalCards.length; i++) {
-            if (i === 3) await sleep(2500);
-            else await sleep(750);
-            finalCards[i].classList.remove('is-back');
-            finalCards[i].classList.add('floating');
-        }
-
-        // 10. フィナーレ
-        if (!isAdmin) localStorage.setItem('gioia_magic_played', 'true');
-        await sleep(3500);
-        pushMsg("不思議を感じましたか？");
-        await sleep(3000);
-        pushMsg("Gran GIOIA Ginzaでは、");
-        await sleep(3000);
-        pushMsg("WEBでは決して体験できない");
-        await sleep(3000);
-        pushMsg("「このレベルではない奇跡」をお届けします。");
-
-        await sleep(5000);
-        table.style.opacity = 0;
-        await sleep(2000);
-        document.getElementById('reserve-ui').classList.remove('hidden');
-        setTimeout(() => document.getElementById('reserve-ui').style.opacity = 1, 100);
-    }
-
-    function showReserveImmediately() {
-        document.getElementById('game-ui').style.opacity = 0;
-        setTimeout(() => {
-            document.getElementById('game-ui').classList.add('hidden');
-            var res = document.getElementById('reserve-ui');
-            res.classList.remove('hidden');
-            setTimeout(() => res.style.opacity = 1, 100);
-        }, 1000);
-    }
-</script>
-</body>
-</html>
+            isAdmin = urlParams.get('mode') === 'gioia_
