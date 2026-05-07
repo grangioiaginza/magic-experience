@@ -8,9 +8,7 @@
         /* 1. ブラックアウトを物理的に防ぐ堅牢レイアウト */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; overflow: hidden; }
         
-        /* 背面：背景画像 */
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 1; }
-        /* 中面：物理的な暗幕 */
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 2; }
 
         .container { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; }
@@ -48,7 +46,6 @@
         #reserve-ui { position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; text-align: center; display: none; transition: 2.5s; }
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.3rem; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
         
-        /* 診断用ステータスバー */
         #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #fffde7; z-index: 10000; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 5px; border: 1px solid #f1d592; }
     </style>
 </head>
@@ -58,7 +55,7 @@
 <div id="bg-curtain"></div>
 
 <div class="container">
-    <div id="status-info">Build: 5400 | Direct Ignition Sequence...</div>
+    <div id="status-info">Build: 5500 | Protocol Syncing...</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -79,18 +76,10 @@
 
     function log(t) { 
         var el = document.getElementById('status-info');
-        if(el) el.innerText = "Build: 5400 | " + t; 
+        if(el) el.innerText = "Build: 5500 | " + t; 
     }
-    function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     // --- 2. メッセージエンジン ---
     function pushMsg(txt) {
-        var el = document.createElement('div');
-        el.className = 'msg-line bottom';
-        el.innerHTML = txt;
-        msgBox.appendChild(el);
-        var lines = msgBox.querySelectorAll('.msg-line');
-        if(lines.length > 3) lines[0].remove();
-        lines.forEach(function(l, idx) {
-            if(idx === lines.length - 1) { setTimeout(function(){ l.className = 'msg-line center'; }, 40); }
-            else if(idx
+        var el = document.
