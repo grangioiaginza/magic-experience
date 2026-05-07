@@ -191,4 +191,77 @@
             await sleep(900);
         }
 
-        // 5. 強制裏返し + 一度
+        // 5. 強制裏返し + 一度スタック（影抑制）
+        t.style.opacity = 0;
+        cards.forEach(c => {
+            c.classList.add('is-back', 'stacked');
+            c.classList.remove('floating');
+            c.style.left = `calc(50% - 65px)`;
+            c.style.transform = `rotate(0deg)`;
+        });
+
+        await sleep(1800);
+        pushMsg("あなたの頭の中にあるカードを消してみせます...");
+        
+        // 6. 再びファン（扇状）にする
+        await sleep(1200);
+        cards.forEach((c, i) => {
+            const offset = (i - 2) * 125;
+            const rot = (i - 2) * 4;
+            c.classList.remove('stacked');
+            c.style.left = `calc(50% - 65px + ${offset}px)`;
+            c.style.transform = `rotate(${rot}deg)`;
+        });
+
+        // 7. 真ん中の1枚がスルスルとせり出す
+        await sleep(1500);
+        const vanishCard = cards[2]; 
+        vanishCard.style.zIndex = 300;
+        vanishCard.style.top = `-140px`; 
+        await sleep(1800);
+
+        // 8. ジュワッと消失
+        vanishCard.classList.add('juwa-out');
+        await sleep(2000);
+
+        // 9. SetB展開
+        pushMsg("あなたのカードだけが、消えました。");
+        table.innerHTML = '';
+        cardsSetB.forEach((img, i) => {
+            const card = document.createElement('div');
+            card.className = 'card is-back is-visible';
+            const offset = (i - 1.5) * 155;
+            const rot = (i - 1.5) * 5;
+            card.style.left = `calc(50% - 65px + ${offset}px)`;
+            card.style.setProperty('--base-rot', `${rot}deg`);
+            card.style.transform = `rotate(${rot}deg)`;
+            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
+            table.appendChild(card);
+        });
+
+        // 10. 1枚ずつ表になり、浮遊
+        await sleep(1500);
+        const finalCards = document.querySelectorAll('.card');
+        for (let c of finalCards) {
+            c.classList.remove('is-back');
+            c.classList.add('floating');
+            await sleep(650);
+        }
+
+        if (!isAdmin) localStorage.setItem('gioia_magic_played', 'true');
+        await sleep(5500);
+        showReserve();
+    }
+
+    function showReserve() {
+        document.getElementById('game-ui').style.opacity = 0;
+        setTimeout(() => {
+            document.getElementById('game-ui').classList.add('hidden');
+            const res = document.getElementById('reserve-ui');
+            res.classList.remove('hidden');
+            setTimeout(() => res.style.opacity = 1, 100);
+        }, 1200);
+    }
+</script>
+</body>
+</html>
