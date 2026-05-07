@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 1. レイアウト基盤：ブラックアウト対策 */
+        /* 1. ブラックアウトを物理的に防ぐ堅牢レイヤー */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 1; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 2; }
+        
         .container { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; }
         #game-ui { width: 100%; margin-top: 5vh; }
 
@@ -23,13 +24,13 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
-        /* カードテーブル：中心を絶対基準（グリッド配置） */
+        /* カードテーブル：中心を絶対基準（グリッド） */
         #card-table { 
             height: 420px; width: 100%; position: relative; 
-            display: grid; place-items: center; /* 完全に中央に重ねる */
+            display: grid; place-items: center; 
         }
         .card { 
-            grid-area: 1 / 1; /* 全てのカードを同じ場所に重ねる */
+            grid-area: 1 / 1; /* 全て中央に重なる */
             width: 130px; height: 195px; perspective: 1200px; opacity: 0; pointer-events: none;
             transform: translate(0, 0) rotate(0deg);
         }
@@ -42,7 +43,7 @@
         /* 特殊演出 */
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
-            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 22px)) rotate(calc(var(--base-rot) + 2deg)); } 
+            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
         }
         .floating { animation: magicFloat 3.8s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 85px 35px #f1d592 !important; transition: box-shadow 2.5s ease-in-out; }
@@ -60,7 +61,7 @@
 <div id="bg-curtain"></div>
 
 <div class="container">
-    <div id="status-info">Build: 6700 | Absolute Ignition...</div>
+    <div id="status-info">Build: 6800 | Nexus Protocol Initializing...</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -74,21 +75,25 @@
 </div>
 
 <script>
+    // --- 構成 ---
     var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
     var table, timer, msgBox, currentB;
 
     function log(t) { 
         var el = document.getElementById('status-info');
-        if(el) el.innerText = "Build: 6700 | " + t; 
+        if(el) el.innerText = "Build: 6800 | " + t; 
     }
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+    // --- メッセージエンジン ---
     function pushMsg(txt) {
         var el = document.createElement('div');
         el.className = 'msg-line bottom';
         el.innerHTML = txt;
         msgBox.appendChild(el);
+        // 同期的に強制的にリフローを起こす
+        void el.offsetWidth;
         var lines = msgBox.querySelectorAll('.msg-line');
         if(lines.length > 3) lines[0].remove();
         lines.forEach(function(l, idx) {
@@ -98,9 +103,22 @@
         });
     }
 
+    // --- カード配置 ---
     function applyFan(cards, spacing, rotUnit) {
         cards.forEach(function(c, i) {
             var diff = i - (cards.length - 1) / 2;
             var tx = diff * spacing;
             var ty = Math.abs(diff) * Math.abs(diff) * 15;
             var rot = diff * rotUnit;
+            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
+            c.style.opacity = 1;
+            c.style.setProperty('--base-tx', tx + "px");
+            c.style.setProperty('--base-ty', ty + "px");
+            c.style.setProperty('--base-rot', rot + "deg");
+            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+        });
+    }
+
+    // --- メインシーケンス ---
+    async function startMagicPerformance() {
+        log("Sequence: Action Ingress");
