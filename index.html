@@ -8,7 +8,7 @@
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
         .container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
         
-        /* 横画面推奨オーバーレイ */
+        /* 横画面推奨案内 */
         #orientation-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000;
             display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
@@ -20,39 +20,41 @@
 
         #card-table { display: flex; justify-content: center; align-items: center; height: 350px; position: relative; width: 100%; max-width: 800px; }
         
-        /* カードの基本設定 */
-        .card { width: 120px; height: 180px; position: absolute; perspective: 1000px; transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; filter: blur(10px); }
-        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s ease-in-out; transform-style: preserve-3d; }
+        /* カード基本設定 */
+        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; filter: blur(15px); }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s ease-in-out; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; filter: blur(0); }
 
-        /* ジュワッとした出現/消滅アニメーション */
+        /* ジュワッとした出現/消滅 */
         .juwa-in { animation: juwa-in 1.5s forwards; }
         .juwa-out { animation: juwa-out 1.5s forwards; }
         @keyframes juwa-in { from { opacity: 0; filter: blur(20px); transform: scale(0.8); } to { opacity: 1; filter: blur(0); transform: scale(1); } }
-        @keyframes juwa-out { from { opacity: 1; filter: blur(0); transform: scale(1); } to { opacity: 0; filter: blur(20px); transform: scale(1.2); } }
+        @keyframes juwa-out { from { opacity: 1; filter: blur(0); transform: scale(1); } to { opacity: 0; filter: blur(30px); transform: scale(1.3); } }
 
         /* 浮遊する揺れ */
-        @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--base-rot)); } 50% { transform: translateY(-10px) rotate(calc(var(--base-rot) + 2deg)); } }
-        .floating { animation: float 3s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--base-rot)); } 50% { transform: translateY(-12px) rotate(calc(var(--base-rot) + 2deg)); } }
+        .floating { animation: float 3.5s infinite ease-in-out; }
 
-        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.2); }
-        .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 35px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
+        .card-front { background-color: #fff; }
+        .card-back { transform: rotateY(180deg); background-color: #222; background-size: cover; } /* 画像がなくても形が出るように色を付与 */
 
-        #msg-container { height: 120px; display: flex; align-items: center; justify-content: center; z-index: 10; }
-        h1 { font-size: 1.3rem; font-weight: normal; line-height: 1.8; letter-spacing: 0.1em; transition: 0.8s; text-shadow: 0 0 10px rgba(241,213,146,0.4); }
+        #msg-container { height: 130px; display: flex; align-items: center; justify-content: center; z-index: 10; padding: 0 20px; }
+        h1 { font-size: 1.35rem; font-weight: normal; line-height: 1.8; letter-spacing: 0.15em; transition: 0.8s; text-shadow: 0 0 10px rgba(241,213,146,0.4); }
         
-        #timer { font-size: 5rem; font-weight: bold; color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; pointer-events: none; z-index: 100; font-family: sans-serif; }
+        #timer { font-size: 6rem; font-weight: bold; color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; pointer-events: none; z-index: 100; font-family: 'Times New Roman', serif; }
         
         .hidden { display: none !important; }
-        #reserve-ui { padding: 40px; transition: 2s; }
+        #reserve-ui { padding: 40px; transition: 2s; opacity: 0; }
+        .btn { background: #f1d592; border: none; padding: 15px 45px; border-radius: 40px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.1rem; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
     </style>
 </head>
 <body>
 
 <div id="orientation-overlay">
     <p>画面を横にして、"奇跡"をお楽しみください</p>
-    <div style="font-size: 2rem;">🔄</div>
+    <div style="font-size: 3rem; margin-top: 20px;">🔄</div>
 </div>
 
 <div class="container">
@@ -61,16 +63,19 @@
         <div id="card-table"><div id="timer">10</div></div>
     </div>
 
-    <div id="reserve-ui" class="hidden" style="opacity: 0;">
+    <div id="reserve-ui" class="hidden">
         <h1>不思議を感じましたか？</h1>
-        <p>Gran GIOIA Ginza では、<br>WEBでは決して体験できない<br>「このレベルではない軌跡」をお届けします。</p>
-        <button style="background:#f1d592; border:none; padding:15px 40px; border-radius:30px; font-weight:bold; cursor:pointer;" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
+        <p style="line-height: 2;">Gran GIOIA Ginza では、<br>WEBでは決して体験できない<br>「このレベルではない軌跡」をお届けします。</p>
+        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
     </div>
 </div>
 
 <script>
+    // 設定：ファイル名は必ずGitHub上の表記と一致させてください
+    const BACK_IMG = './back.webp';
     const cardsSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     const cardsSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+
     const msg = document.getElementById('main-msg');
     const table = document.getElementById('card-table');
     const timerDisplay = document.getElementById('timer');
@@ -92,95 +97,108 @@
     async function initMagic() {
         table.innerHTML = '<div id="timer">10</div>';
         updateMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await sleep(2000);
+        await sleep(2500);
 
-        // ジュワッと中央に登場
+        // 1. ジュワッと中央に裏向きで登場
         cardsSetA.forEach((img, i) => {
             const card = document.createElement('div');
             card.className = 'card is-back juwa-in';
-            card.style.left = `calc(50% - 60px)`;
+            card.style.left = `calc(50% - 65px)`;
             card.style.zIndex = i;
-            card.innerHTML = `<div class="card-inner"><div class="card-face" style="background-image:url('${img}')"></div><div class="card-back"></div></div>`;
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-face card-front" style="background-image:url('${img}')"></div>
+                    <div class="card-face card-back" style="background-image:url('${BACK_IMG}')"></div>
+                </div>`;
             table.appendChild(card);
         });
 
-        await sleep(1500);
+        await sleep(2000);
         updateMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
         
-        // ディーラー配り
-        await sleep(2500);
+        // 2. ディーラー配り（スプレッド）
+        await sleep(3000);
         const cards = document.querySelectorAll('.card');
         cards.forEach((c, i) => {
-            const offset = (i - 2) * 140;
-            const rot = (i - 2) * 4;
+            const offset = (i - 2) * 155;
+            const rot = (i - 2) * 5;
             c.classList.remove('juwa-in');
             c.classList.add('is-visible');
-            c.style.left = `calc(50% - 60px + ${offset}px)`;
+            c.style.left = `calc(50% - 65px + ${offset}px)`;
             c.style.setProperty('--base-rot', `${rot}deg`);
             c.style.transform = `rotate(${rot}deg)`;
         });
 
-        await sleep(1500);
-        updateMsg("声に出したりすると、<br>スマートフォンのマイクが拾うかもしれません。");
-        await sleep(4000);
+        await sleep(2000);
+        updateMsg("スマートフォンのマイクが、<br>あなたの思考を拾うかもしれません。");
+        await sleep(4500);
         updateMsg("あなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
-        await sleep(4000);
+        await sleep(4500);
 
-        // 表向き + 揺れ開始
+        // 3. 表向きにする + 揺れ開始
         for (let c of cards) {
             c.classList.remove('is-back');
             c.classList.add('floating');
-            await sleep(200);
+            await sleep(250);
         }
 
-        // 10秒カウント
-        timerDisplay.style.opacity = 0.8;
+        await sleep(1000);
+
+        // 4. タイマー開始
+        const t = document.getElementById('timer');
+        t.style.opacity = 0.9;
         for (let i = 10; i >= 0; i--) {
-            timerDisplay.innerText = i;
+            t.innerText = i;
             await sleep(1000);
         }
 
-        // 強制裏返し + スタック
-        timerDisplay.style.opacity = 0;
+        // 5. 強制裏返し + 束にまとめる
+        t.style.opacity = 0;
         cards.forEach(c => {
             c.classList.add('is-back');
             c.classList.remove('floating');
-            c.style.left = `calc(50% - 60px)`;
+            c.style.left = `calc(50% - 65px)`;
             c.style.transform = `rotate(0deg)`;
         });
 
-        await sleep(1500);
+        await sleep(1800);
         updateMsg("あなたの頭の中にあるカードを消してみせます...");
         
-        // 束から1枚出てくる
-        const vanishCard = cards[4];
-        vanishCard.style.zIndex = 100;
-        vanishCard.style.top = `-100px`; // 少し上へ迫り出す
+        // 6. 1枚だけ上にせり出す
+        await sleep(1000);
+        const vanishCard = cards[4]; // 一番上のカード
+        vanishCard.style.zIndex = 200;
+        vanishCard.style.top = `-120px`; // 上へスライド
         await sleep(1500);
 
-        // ジュワッと消える
+        // 7. ジュワッと消失
         vanishCard.classList.add('juwa-out');
-        await sleep(1500);
+        await sleep(1800);
 
-        // 残りの4枚を広げる (SetBに差し替え)
+        // 8. 残りの4枚を広げる (SetB)
         updateMsg("あなたのカードだけが、消えました。");
         table.innerHTML = '';
         cardsSetB.forEach((img, i) => {
             const card = document.createElement('div');
             card.className = 'card is-visible';
-            const offset = (i - 1.5) * 140;
-            card.style.left = `calc(50% - 60px + ${offset}px)`;
-            card.style.transform = `rotate(${(i-1.5)*4}deg)`;
-            card.innerHTML = `<div class="card-inner"><div class="card-face" style="background-image:url('${img}')"></div><div class="card-back"></div></div>`;
+            const offset = (i - 1.5) * 155;
+            const rot = (i - 1.5) * 5;
+            card.style.left = `calc(50% - 65px + ${offset}px)`;
+            card.style.transform = `rotate(${rot}deg)`;
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-face card-front" style="background-image:url('${img}')"></div>
+                    <div class="card-face card-back" style="background-image:url('${BACK_IMG}')"></div>
+                </div>`;
             table.appendChild(card);
         });
 
         if (!isAdmin) localStorage.setItem('gioia_magic_played', 'true');
-        await sleep(4000);
+        await sleep(4500);
         showReserve();
     }
 
-    function updateMsg(t) { msg.style.opacity = 0; setTimeout(() => { msg.innerHTML = t; msg.style.opacity = 1; }, 500); }
+    function updateMsg(t) { msg.style.opacity = 0; setTimeout(() => { msg.innerHTML = t; msg.style.opacity = 1; }, 700); }
     function showReserve() {
         document.getElementById('game-ui').style.opacity = 0;
         setTimeout(() => {
@@ -188,7 +206,7 @@
             const res = document.getElementById('reserve-ui');
             res.classList.remove('hidden');
             setTimeout(() => res.style.opacity = 1, 100);
-        }, 1000);
+        }, 1200);
     }
 </script>
 </body>
