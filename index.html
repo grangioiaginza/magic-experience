@@ -5,17 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 基本スタイル */
+        /* 1. 基本レイアウト & 背景 */
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
+        
+        /* コンテナ背景の読み込みを安定化 */
         .container { 
             min-height: 100vh; width: 100vw; position: relative; 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5vh; 
-            background: url('./SocialCover.webp') center/cover no-repeat;
+            background: #000 url('./SocialCover.webp') center/cover no-repeat;
+            z-index: 1;
         }
-        .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1; }
-        #game-ui { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: -1; }
+        
+        #game-ui { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-        /* メッセージ完全中央 */
+        /* 2. メッセージ：完全中央 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; left: 0; top: 0; width: 100%; height: 100%;
@@ -29,10 +33,12 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
-        #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
+        /* 3. カウントダウン */
+        #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s; text-shadow: 0 0 50px #000; }
 
-        #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; z-index: 10; }
-        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; will-change: transform; }
+        /* 4. カードテーブル */
+        #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; }
+        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1); }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -40,17 +46,66 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
+        /* 5. 特殊エフェクト */
         @keyframes float { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
         }
-        .floating { animation: float 3.5s infinite ease-in-out !important; }
+        .floating { animation: float 3.5s infinite ease-in-out; }
+        
         .juwa-in { animation: juwa-in 1.2s forwards; }
         @keyframes juwa-in { from { opacity: 0; filter: blur(20px); } to { opacity: 1; filter: blur(0); } }
 
-        .glow { box-shadow: 0 0 60px 25px #f1d592 !important; transition: box-shadow 1.5s ease-in-out; }
+        .glow { box-shadow: 0 0 65px 30px #f1d592 !important; transition: box-shadow 1.5s ease-in-out; }
 
+        /* 6. フィナーレ */
         #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; transition: 2s; text-align: center; }
         .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; }
+        
         .hidden { display: none !important; }
-        #status-info { position: fixed; bottom: 10px; right: 10px; font-size
+        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.5); z-index: 2000; background: rgba(0,0,0,0.5); padding: 2px 5px; }
+
+        #orientation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; visibility: hidden; opacity: 0; }
+        @media screen and (max-width: 900px) and (orientation: portrait) { #orientation-overlay { visibility: visible; opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="orientation-overlay">
+    <p>画面を横にして、"Card Magic"をお楽しみください</p>
+    <div style="font-size: 3rem; margin-top: 20px;">🔄</div>
+</div>
+
+<div id="status-info">Build: 2815 | Loading...</div>
+
+<div class="container">
+    <div id="game-ui">
+        <div id="msg-container"></div>
+        <div id="timer">8</div>
+        <div id="card-table"></div>
+    </div>
+    <div id="reserve-ui" class="hidden">
+        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
+    </div>
+</div>
+
+<script>
+    // --- 1. グローバル設定 ---
+    const fixedSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
+    const fixedSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    let currentA = [], currentB = [], isAdmin = false;
+    let table, timerDisplay, msgContainer, statusDisplay;
+
+    function updateStatus(msg, isError = false) {
+        statusDisplay = document.getElementById('status-info');
+        if (statusDisplay) {
+            statusDisplay.innerText = "Build: 2815 | " + msg;
+            if (isError) statusDisplay.style.color = "#ff4d4d";
+        }
+    }
+
+    // --- 2. 初期化 ---
+    window.addEventListener('DOMContentLoaded', () => {
+        try {
+            table = document.getElementById('card-table');
+            timerDisplay = document.getElementById('timer');
