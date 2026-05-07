@@ -20,9 +20,8 @@
         }
         .entrance-logo { font-size: 1.8rem; letter-spacing: 0.3em; margin-bottom: 40px; text-align: center; text-shadow: 0 0 25px #000; }
         .start-btn { 
-            background: none; border: 1px solid #f1d592; color: #f1d592; padding: 20px 50px; 
-            font-size: 1.2rem; cursor: pointer; transition: all 0.3s; letter-spacing: 0.2em;
-            background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.6); border: 1px solid #f1d592; color: #f1d592; padding: 20px 50px; 
+            font-size: 1.2rem; cursor: pointer; transition: all 0.3s; letter-spacing: 0.2em; backdrop-filter: blur(5px);
         }
         .start-btn:hover { background: #f1d592; color: #000; box-shadow: 0 0 30px #f1d592; }
 
@@ -39,17 +38,17 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
         
-        /* フィナーレ縦並び */
+        /* フィナーレ縦並び（固定表示） */
         .msg-line.finale { 
             position: relative; opacity: 1; transform: none; display: block; 
-            margin: 10px 0; transition: opacity 2s; width: 100%;
+            margin: 8px 0; transition: opacity 2s; width: 100%;
         }
 
-        /* カード：絶対座標で中央固定 */
+        /* カード配置（絶対座標） */
         #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s; }
         .card { 
             width: 130px; height: 195px; position: absolute; 
-            left: 50%; margin-left: -65px; /* 7600で成功した中央寄せ */
+            left: 50%; margin-left: -65px;
             perspective: 1200px; opacity: 0; pointer-events: none;
         }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
@@ -67,7 +66,7 @@
 
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
         
-        /* 最終アクションエリア */
+        /* 最終アクションボタン */
         #reserve-ui { 
             position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); 
             width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2.5s; 
@@ -84,11 +83,11 @@
 <div id="bg-canvas"></div>
 <div id="bg-curtain"></div>
 
-<div id="status-info">Build: 7900 | Engine Ready</div>
+<div id="status-info">Build: 8000 | 100th Milestone Ready</div>
 
 <div id="entrance">
     <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">Card Magic Experience</span></div>
-    <button class="start-btn" onclick="igniteMagic()">奇跡の扉を開く</button>
+    <button class="start-btn" onclick="igniteMagicNow()">奇跡の扉を開く</button>
 </div>
 
 <div class="container">
@@ -101,177 +100,24 @@
     <div id="reserve-ui">
         <div class="btn-group">
             <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
-            <button class="btn secondary" onclick="sharePage()">このマジックを誰かに見せる</button>
+            <button class="btn secondary" onclick="shareThisMagic()">このマジックを誰かに見せる</button>
         </div>
     </div>
 </div>
 
 <script>
+    var table, timer, msgBox, currentB, isStarted = false;
     var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
-    var table, timer, msgBox, currentB, isStarted = false;
 
-    function log(t) { document.getElementById('status-info').innerText = "Build: 7900 | " + t; }
+    function log(t) { document.getElementById('status-info').innerText = "Build: 8000 | " + t; }
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     function pushMsg(txt, isFinale = false) {
-        if(!msgBox) return;
         var el = document.createElement('div');
         el.className = isFinale ? 'msg-line finale' : 'msg-line bottom';
         el.innerHTML = txt;
         msgBox.appendChild(el);
         void el.offsetWidth;
         if(isFinale) return;
-        var lines = msgBox.querySelectorAll('.msg-line:not(.finale)');
-        if(lines.length > 3) lines[0].remove();
-        lines.forEach(function(l, idx) {
-            if(idx === lines.length - 1) { setTimeout(() => l.className = 'msg-line center', 50); }
-            else if(idx === lines.length - 2) { l.className = 'msg-line top'; }
-            else { l.className = 'msg-line exit'; }
-        });
-    }
-
-    function applyFan(cards, spacing, rotUnit) {
-        cards.forEach(function(c, i) {
-            var diff = i - (cards.length - 1) / 2;
-            var tx = diff * spacing;
-            var ty = Math.abs(diff) * Math.abs(diff) * 15;
-            var rot = diff * rotUnit;
-            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
-            c.style.opacity = 1;
-            c.style.setProperty('--base-tx', tx + "px");
-            c.style.setProperty('--base-ty', ty + "px");
-            c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
-        });
-    }
-
-    function sharePage() {
-        var url = window.location.href.split('?')[0];
-        if (navigator.share) navigator.share({ title: 'Gran GIOIA Ginza', url: url });
-        else alert("リンクをコピーしました。\n" + url);
-    }
-
-    async function igniteMagic() {
-        if(isStarted) return;
-        isStarted = true;
-
-        // ボタン押下時に要素を確定取得
-        table = document.getElementById('card-table');
-        timer = document.getElementById('timer');
-        msgBox = document.getElementById('msg-container');
-
-        document.getElementById('entrance').style.opacity = '0';
-        document.getElementById('game-ui').style.display = 'block';
-        setTimeout(() => {
-            document.getElementById('entrance').style.display = 'none';
-            document.getElementById('game-ui').style.opacity = '1';
-        }, 800);
-
-        log("Status: Magic Initiated");
-        await wait(1000);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        
-        var currentA = [...SET_A].sort(() => Math.random() - 0.5);
-        currentB = [...SET_B].sort(() => Math.random() - 0.5);
-        
-        currentA.forEach(function(img, i) {
-            var c = document.createElement('div');
-            c.className = 'card is-back';
-            c.style.zIndex = i;
-            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+img+'\')"></div><div class="card-face card-back"></div></div>';
-            table.appendChild(c);
-            setTimeout(() => c.classList.add('is-visible'), 500); 
-        });
-        await wait(2200);
-
-        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
-        var cards = document.querySelectorAll('.card');
-        applyFan(cards, 165, 12);
-        await wait(2500);
-
-        // カウントダウン
-        timer.style.opacity = 1;
-        for (var i = 8; i >= 0; i--) { timer.innerText = i; if(i===0) break; await wait(950); }
-        timer.style.opacity = 0;
-
-        // 2行メッセージ
-        pushMsg("スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。");
-        await wait(3500);
-
-        for (var i = 0; i < cards.length; i++) {
-            cards[i].classList.remove('is-back');
-            cards[i].classList.add('floating');
-            await wait(250);
-        }
-        await wait(1500);
-
-        // 集合
-        cards.forEach(function(c) {
-            c.className = 'card is-back is-visible'; 
-            c.style.animation = "none";
-            void c.offsetWidth;
-            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
-            c.style.transform = "translate(0, 0) rotate(0deg)";
-        });
-        await wait(1500);
-
-        // --- 本物の【中抜き】シャッフル ---
-        // zIndexが一番高い(4)を重石として残し、idx 3(2枚目)を抜く
-        log("Status: Middle-Pull Shuffling");
-        var deck = Array.from(cards).sort((a,b) => a.style.zIndex - b.style.zIndex);
-        var pulls = [{idx:3, x:270}, {idx:0, x:-270}, {idx:1, x:220}];
-        var topZ = 100;
-        
-        for (var i = 0; i < pulls.length; i++) {
-            var targetIdx = pulls[i].idx;
-            var c = deck[targetIdx];
-            c.style.zIndex = topZ++;
-            c.style.transition = "transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1)";
-            c.style.transform = "translate(" + pulls[i].x + "px, -70px) rotate(15deg)";
-            await wait(600);
-            c.style.transform = "translate(0, 0) rotate(0deg)";
-            await wait(450);
-            deck.push(deck.splice(targetIdx, 1)[0]);
-        }
-        await wait(1200);
-
-        pushMsg("あなたの頭の中にあるカードを消してみせます...");
-        applyFan(deck, 145, 10);
-        await wait(1800);
-
-        // 消失（高度制限）
-        var vCard = deck[2];
-        vCard.className = 'card is-back is-visible';
-        vCard.style.zIndex = 500;
-        vCard.querySelector('.card-back').classList.add('glow');
-        await wait(1500);
-
-        var finalTx = vCard.style.getPropertyValue('--base-tx');
-        vCard.style.transition = "transform 4.0s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 2.5s, opacity 2.5s, filter 2.5s";
-        vCard.style.transform = "translate("+finalTx+", -200px) rotate(3deg)";
-        await wait(3500);
-        vCard.style.opacity = "0";
-        vCard.style.filter = "blur(30px)";
-        await wait(1000);
-
-        pushMsg("あなたのカードだけが、消えました。");
-        var remaining = deck.filter((_, idx) => idx !== 2);
-        remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = "url('"+currentB[i]+"')");
-        await wait(1200);
-
-        for (var i = 0; i < remaining.length; i++) {
-            var c = remaining[i];
-            await wait(i === 3 ? 900 : 500); 
-            c.style.transition = "transform 0.8s";
-            c.classList.remove('is-back'); 
-            c.classList.add('floating'); 
-        }
-        await wait(2000);
-        
-        // --- フィナーレ ---
-        var oldLines = msgBox.querySelectorAll('.msg-line:not(.finale)');
-        oldLines.forEach(l => l.style.opacity = '0');
-        await wait(500);
-        
-        // 縦3
+        var lines = msgBox.querySelectorAll('.msg-line:not
