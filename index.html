@@ -8,6 +8,7 @@
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
         .container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
         
+        /* 横画面推奨案内 */
         #orientation-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000;
             display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
@@ -15,41 +16,41 @@
         }
         @media screen and (orientation: portrait) { #orientation-overlay { visibility: visible; opacity: 1; } }
 
+        /* メッセージコンテナ（2行表示用） */
+        #msg-container { height: 160px; position: relative; width: 100%; display: flex; align-items: center; justify-content: center; z-index: 10; overflow: hidden; }
+        .msg-line { position: absolute; width: 100%; transition: all 1.0s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; font-size: 1.3rem; font-weight: normal; line-height: 1.8; letter-spacing: 0.15em; text-shadow: 0 0 10px rgba(241,213,146,0.4); }
+        .msg-line.center { opacity: 1; transform: translateY(0); }
+        .msg-line.top { opacity: 0.4; transform: translateY(-45px) scale(0.9); }
+        .msg-line.exit { opacity: 0; transform: translateY(-90px); }
+        .msg-line.bottom { opacity: 0; transform: translateY(45px); }
+
         #card-table { display: flex; justify-content: center; align-items: center; height: 350px; position: relative; width: 100%; max-width: 800px; }
         
-        /* カード基本設定 */
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; filter: blur(15px); }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s ease-in-out; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; filter: blur(0); }
 
-        /* スタック時の影の重なり防止（重なっている時は影を薄くする） */
+        /* スタック時の影抑制 */
         .card.stacked { box-shadow: none; }
         .card.stacked .card-face { box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
-        /* ジュワッとしたアニメーション */
         .juwa-in { animation: juwa-in 1.5s forwards; }
         .juwa-out { animation: juwa-out 1.5s forwards; }
         @keyframes juwa-in { from { opacity: 0; filter: blur(20px); transform: scale(0.8); } to { opacity: 1; filter: blur(0); transform: scale(1); } }
         @keyframes juwa-out { from { opacity: 1; filter: blur(0); transform: scale(1); } to { opacity: 0; filter: blur(30px); transform: scale(1.3); } }
 
-        /* 浮遊する揺れ */
         @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--base-rot)); } 50% { transform: translateY(-12px) rotate(calc(var(--base-rot) + 2deg)); } }
         .floating { animation: float 3.5s infinite ease-in-out; }
 
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        #msg-container { height: 130px; display: flex; align-items: center; justify-content: center; z-index: 10; padding: 0 20px; }
-        h1 { font-size: 1.3rem; font-weight: normal; line-height: 1.8; letter-spacing: 0.15em; transition: 0.8s; text-shadow: 0 0 10px rgba(241,213,146,0.4); }
-        
-        /* タイマーを見やすく修正（縁取りと強いシャドウ） */
+        /* タイマー視認性強化 */
         #timer { 
-            font-size: 6rem; font-weight: bold; color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            font-size: 7rem; font-weight: bold; color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             opacity: 0; pointer-events: none; z-index: 100; font-family: 'Times New Roman', serif;
-            text-shadow: 
-                3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000,
-                0 0 20px rgba(0,0,0,1), 0 0 40px rgba(0,0,0,0.8);
+            text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 30px rgba(0,0,0,1), 0 0 60px rgba(0,0,0,0.9);
         }
         
         .hidden { display: none !important; }
@@ -66,8 +67,8 @@
 
 <div class="container">
     <div id="game-ui">
-        <div id="msg-container"><h1 id="main-msg"></h1></div>
-        <div id="card-table"><div id="timer">10</div></div>
+        <div id="msg-container"></div>
+        <div id="card-table"><div id="timer">8</div></div>
     </div>
 
     <div id="reserve-ui" class="hidden">
@@ -80,9 +81,9 @@
 <script>
     const cardsSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     const cardsSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
-    const msg = document.getElementById('main-msg');
     const table = document.getElementById('card-table');
     const timerDisplay = document.getElementById('timer');
+    const msgContainer = document.getElementById('msg-container');
 
     const urlParams = new URLSearchParams(window.location.search);
     const isAdmin = urlParams.get('mode') === 'gioia_admin';
@@ -98,12 +99,35 @@
 
     async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    async function initMagic() {
-        table.innerHTML = '<div id="timer">10</div>';
-        updateMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await sleep(2500);
+    // メッセージのせり上がり制御
+    function pushMsg(newText) {
+        const currentLines = msgContainer.querySelectorAll('.msg-line');
+        currentLines.forEach(line => {
+            if (line.classList.contains('top')) {
+                line.classList.replace('top', 'exit');
+                setTimeout(() => line.remove(), 1000);
+            } else if (line.classList.contains('center')) {
+                line.classList.replace('center', 'top');
+            }
+        });
 
-        // 1. 中央にスタック状態でジュワッと登場（影を抑える）
+        const newLine = document.createElement('div');
+        newLine.className = 'msg-line bottom';
+        newLine.innerHTML = newText;
+        msgContainer.appendChild(newLine);
+
+        // 描画タイミングをずらしてアニメーションさせる
+        setTimeout(() => newLine.classList.replace('bottom', 'center'), 50);
+    }
+
+    async function initMagic() {
+        table.innerHTML = '<div id="timer">8</div>';
+        
+        await sleep(1000);
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+        await sleep(2000);
+
+        // 中央スタック登場
         cardsSetA.forEach((img, i) => {
             const card = document.createElement('div');
             card.className = 'card is-back juwa-in stacked';
@@ -114,9 +138,9 @@
         });
 
         await sleep(2000);
-        updateMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
+        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
         
-        // 2. ディーラー配り（影を通常に戻す）
+        // ディーラー配り
         await sleep(3000);
         const cards = document.querySelectorAll('.card');
         cards.forEach((c, i) => {
@@ -129,28 +153,29 @@
             c.style.transform = `rotate(${rot}deg)`;
         });
 
-        await sleep(2000);
-        updateMsg("スマートフォンのマイクが、<br>あなたの思考を拾うかもしれません。");
+        await sleep(2500);
+        pushMsg("スマートフォンのマイクが、<br>あなたの思考を拾うかもしれません。");
         await sleep(4500);
-        updateMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
+        pushMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
         await sleep(4500);
 
-        // 3. 表向きにする + 揺れ開始
+        // 表向き + 揺れ
         for (let c of cards) {
             c.classList.remove('is-back');
             c.classList.add('floating');
             await sleep(250);
         }
 
-        // 4. タイマー開始
+        // 8秒×0.9sカウント
         const t = document.getElementById('timer');
         t.style.opacity = 1;
-        for (let i = 10; i >= 0; i--) {
+        for (let i = 8; i >= 0; i--) {
             t.innerText = i;
-            await sleep(1000);
+            if (i === 0) break;
+            await sleep(900);
         }
 
-        // 5. 強制裏返し + 一度スタック
+        // 強制裏返し + スタック
         t.style.opacity = 0;
         cards.forEach(c => {
             c.classList.add('is-back', 'stacked');
@@ -160,10 +185,10 @@
         });
 
         await sleep(1500);
-        updateMsg("あなたの頭の中にあるカードを消してみせます...");
+        pushMsg("あなたの頭の中にあるカードを消してみせます...");
         
-        // 6. 再びファンにする（裏向き）
-        await sleep(1000);
+        // 再びファン（裏向き）
+        await sleep(1200);
         cards.forEach((c, i) => {
             const offset = (i - 2) * 120;
             const rot = (i - 2) * 3;
@@ -172,19 +197,19 @@
             c.style.transform = `rotate(${rot}deg)`;
         });
 
-        // 7. 1枚だけ上にせり出す
-        await sleep(1200);
-        const vanishCard = cards[2]; // 真ん中のカードをターゲットに
+        // 1枚せり出し
+        await sleep(1500);
+        const vanishCard = cards[2]; 
         vanishCard.style.zIndex = 300;
         vanishCard.style.top = `-130px`; 
-        await sleep(1500);
-
-        // 8. ジュワッと消失
-        vanishCard.classList.add('juwa-out');
         await sleep(1800);
 
-        // 9. 残りの4枚を広げる (SetB)
-        updateMsg("あなたのカードだけが、消えました。");
+        // ジュワッと消失
+        vanishCard.classList.add('juwa-out');
+        await sleep(2000);
+
+        // SetB展開（裏向き）
+        pushMsg("あなたのカードだけが、消えました。");
         table.innerHTML = '';
         cardsSetB.forEach((img, i) => {
             const card = document.createElement('div');
@@ -198,21 +223,20 @@
             table.appendChild(card);
         });
 
-        // 10. 1枚ずつ表になり、フワフワする
+        // 1枚ずつ表へ
         await sleep(1500);
         const finalCards = document.querySelectorAll('.card');
         for (let c of finalCards) {
             c.classList.remove('is-back');
             c.classList.add('floating');
-            await sleep(600); // 1枚ずつめくるリズム
+            await sleep(650);
         }
 
         if (!isAdmin) localStorage.setItem('gioia_magic_played', 'true');
-        await sleep(5000);
+        await sleep(5500);
         showReserve();
     }
 
-    function updateMsg(t) { msg.style.opacity = 0; setTimeout(() => { msg.innerHTML = t; msg.style.opacity = 1; }, 700); }
     function showReserve() {
         document.getElementById('game-ui').style.opacity = 0;
         setTimeout(() => {
