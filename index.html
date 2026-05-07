@@ -5,14 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* ブラックアウト・フリーズ対策 */
+        /* ブラックアウト・フリーズを根絶する堅牢なベース */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
         .container { 
             width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('./SocialCover.webp') center/cover no-repeat;
-            position: relative;
+            position: relative; z-index: 1;
         }
-        #game-ui { width: 100%; margin-top: 5vh; }
+        #game-ui { width: 100%; z-index: 10; margin-top: 5vh; position: relative; }
+        
+        /* メッセージ完全中央 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; width: 100%; display: flex; align-items: center; justify-content: center;
@@ -24,7 +26,7 @@
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
         #card-table { height: 400px; width: 100%; max-width: 900px; position: relative; display: flex; justify-content: center; align-items: center; }
-        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; }
+        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; pointer-events: none; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -41,13 +43,13 @@
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
         #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; text-align: center; display: none; transition: 2s; }
         .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; }
-        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.4); z-index: 2000; background: rgba(0,0,0,0.5); padding: 2px 5px; }
+        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.4); z-index: 2000; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 3px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="status-info">Build: 4000 | Ignited</div>
+    <div id="status-info">Build: 4100 | Initializing...</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -66,69 +68,6 @@
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
     var table, timer, msgBox, currentB;
 
-    function updateLog(t) { 
+    function log(t) { 
         var el = document.getElementById('status-info');
-        if(el) el.innerText = "Build: 4000 | " + t; 
-    }
-
-    // --- 2. ユーティリティ ---
-    function shuffle(arr) {
-        for (var i = arr.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-        }
-        return arr;
-    }
-    function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
-
-    function pushMsg(txt) {
-        var el = document.createElement('div');
-        el.className = 'msg-line bottom';
-        el.innerHTML = txt;
-        msgBox.appendChild(el);
-        
-        var lines = msgBox.querySelectorAll('.msg-line');
-        if(lines.length > 3) lines[0].remove();
-
-        lines.forEach(function(l, idx) {
-            if(idx === lines.length - 1) {
-                setTimeout(function(){ l.className = 'msg-line center'; }, 50);
-            } else if(idx === lines.length - 2) {
-                l.className = 'msg-line top';
-            } else {
-                l.className = 'msg-line exit';
-            }
-        });
-    }
-
-    function applyFan(cards, spacing, rotUnit) {
-        cards.forEach(function(c, i) {
-            var diff = i - (cards.length - 1) / 2;
-            var tx = diff * spacing;
-            var ty = Math.abs(diff) * Math.abs(diff) * 15;
-            var rot = diff * rotUnit;
-            c.style.transition = "transform 1.0s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
-            c.style.opacity = 1;
-            c.style.left = "calc(50% - 65px)";
-            c.style.setProperty('--base-tx', tx + "px");
-            c.style.setProperty('--base-ty', ty + "px");
-            c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
-        });
-    }
-
-    // --- 3. メインマジック ---
-    async function startMagic() {
-        updateLog("Magic Started");
-        await wait(500);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await wait(1500);
-
-        // 登場
-        var currentA = shuffle([...SET_A]);
-        currentB = shuffle([...SET_B]);
-        currentA.forEach(function(img, i) {
-            var c = document.createElement('div');
-            c.className = 'card is-back';
-            c.style.zIndex = i;
-            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url
+        if(el) el.innerText = "Build:
