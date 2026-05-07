@@ -5,18 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 基本スタイル */
-        body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
+        /* 1. 基本レイアウト：ブラックアウトを防ぐため背景指定を堅牢化 */
+        html, body { height: 100%; margin: 0; padding: 0; background-color: #000; overflow: hidden; }
+        body { color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; text-align: center; }
+        
         .container { 
-            min-height: 100vh; width: 100vw; position: relative; 
+            height: 100vh; width: 100vw; position: relative; 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5vh; 
-            background: #000 url('./SocialCover.webp') center/cover no-repeat;
+            background-image: url('SocialCover.webp'); /* パスを簡略化 */
+            background-size: cover; background-position: center; background-repeat: no-repeat;
             z-index: 1;
         }
-        .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: -1; }
+        .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: -1; }
+        
         #game-ui { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; z-index: 10; }
 
-        /* メッセージ中央配置 */
+        /* 2. メッセージ：完全中央 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; left: 0; top: 0; width: 100%; height: 100%;
@@ -30,9 +34,10 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
+        /* 3. タイマー */
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
 
-        /* カードテーブル */
+        /* 4. カードテーブル */
         #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
@@ -40,8 +45,9 @@
         .card.is-visible { opacity: 1; }
         
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
-        .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
+        .card-back { transform: rotateY(180deg); background-image: url('back.webp'); background-color: #1a1a1a; }
 
+        /* 5. 特殊エフェクト */
         @keyframes float { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
@@ -49,5 +55,12 @@
         .floating { animation: float 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 70px 30px #f1d592 !important; transition: box-shadow 1.5s ease-in-out; }
 
+        /* 6. フィナーレ */
         #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; transition: 2s; text-align: center; }
-        .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px
+        .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; }
+        
+        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.5); z-index: 2000; background: rgba(0,0,0,0.5); padding: 2px 5px; }
+        .hidden { display: none !important; }
+
+        /* ブラックアウトの原因となる横画面警告をデスクトップでは無効化 */
+        #
