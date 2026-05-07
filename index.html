@@ -14,7 +14,7 @@
         }
         #game-ui { width: 100%; z-index: 10; margin-top: 5vh; position: relative; }
 
-        /* 2. メッセージ：完全中央 */
+        /* メッセージ：完全中央 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; width: 100%; display: flex; align-items: center; justify-content: center;
@@ -25,7 +25,7 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
-        /* 3. カードテーブル */
+        /* カードテーブル */
         #card-table { height: 400px; width: 100%; max-width: 900px; position: relative; display: flex; justify-content: center; align-items: center; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
@@ -34,7 +34,7 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 4. 特殊演出：フローティング */
+        /* 特殊演出 */
         @keyframes float { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
@@ -46,13 +46,13 @@
         #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; text-align: center; display: none; transition: 2s; }
         .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; }
         
-        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #fff; z-index: 10000; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 3px; }
+        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #f1d592; z-index: 10000; background: rgba(0,0,0,0.7); padding: 2px 6px; border-radius: 3px; border: 0.5px solid #f1d592; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="status-info">Build: 5000 | Ignition...</div>
+    <div id="status-info">Build: 5100 | Ready</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -66,13 +66,14 @@
 </div>
 
 <script>
-    // --- グローバル変数 ---
-    var table, timer, msgBox;
     var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    var table = document.getElementById('card-table');
+    var timer = document.getElementById('timer');
+    var msgBox = document.getElementById('msg-container');
     var currentB = [];
 
-    function updateLog(t) { document.getElementById('status-info').innerText = "Build: 5000 | " + t; }
+    function updateLog(t) { document.getElementById('status-info').innerText = "Build: 5100 | " + t; }
     function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
 
     function pushMsg(txt) {
@@ -95,35 +96,4 @@
             var tx = diff * spacing;
             var ty = Math.abs(diff) * Math.abs(diff) * 15;
             var rot = diff * rotUnit;
-            c.style.transition = "transform 1.0s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
-            c.style.opacity = 1;
-            c.style.left = "calc(50% - 65px)";
-            c.style.setProperty('--base-tx', tx + "px");
-            c.style.setProperty('--base-ty', ty + "px");
-            c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
-        });
-    }
-
-    // --- メインエンジン ---
-    async function performMagic() {
-        updateLog("Action Running");
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await wait(1500);
-
-        function shuffle(arr) {
-            for (var i = arr.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-            }
-            return arr;
-        }
-
-        var currentA = shuffle([...SET_A]);
-        currentB = shuffle([...SET_B]);
-        
-        currentA.forEach(function(img, i) {
-            var c = document.createElement('div');
-            c.className = 'card is-back';
-            c.style.zIndex = i;
-            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+img+'\')"></div><div class
+            c.
