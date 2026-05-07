@@ -34,7 +34,7 @@
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s; text-shadow: 0 0 50px #000; }
 
         /* 4. カードテーブル */
-        #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; }
+        #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; z-index: 10; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1); }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
@@ -64,7 +64,7 @@
 </head>
 <body>
 
-<div id="status-info">Build: 2820 | Loading...</div>
+<div id="status-info">Build: 2825 | Init</div>
 
 <div class="container">
     <div id="game-ui">
@@ -86,7 +86,7 @@
 
     function updateStatus(msg) {
         statusDisplay = document.getElementById('status-info');
-        if (statusDisplay) statusDisplay.innerText = "Build: 2820 | " + msg;
+        if (statusDisplay) statusDisplay.innerText = "Build: 2825Final Master with Vanish Fix | " + msg;
     }
 
     // --- 2. 初期化 ---
@@ -137,7 +137,6 @@
         setTimeout(() => el.classList.replace('bottom', 'center'), 100);
     }
 
-    // 扇状に配置するコア関数
     function applyFanLayout(cards, spacing, rotateUnit, duration = "1.0s") {
         cards.forEach((c, i) => {
             const diff = i - (cards.length - 1) / 2;
@@ -155,194 +154,12 @@
         });
     }
 
-    // 新・プロシャッフル（一番上以外を抜き取って重ねる）
+    // 新・プロシャッフル（一番上(zIndex=4)は動かさず、中を抜き取って重ねる）
     async function performMagicShuffle(cards) {
         updateStatus("Shuffle...");
         // カードの要素をzIndexでソート（今の重なりを把握）
         let deck = Array.from(cards).sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         
-        // 抜き取りシーケンス：[抜き取るインデックス(0-3), 左右x, 回転r]
-        const sequence = [
-            { pull: 1, x: 160, r: 15 },  // 下から2枚目を右に抜く
-            { pull: 0, x: -160, r: -15 }, // 一番下を左に抜く
-            { pull: 2, x: 160, r: 15 }   // 真ん中を右に抜く
-        ];
-
-        let topZ = 100;
-        for (let p of sequence) {
-            const c = deck[p.pull];
-            c.style.zIndex = topZ++; // 抜いたカードを最前面へ
-            c.style.transition = "transform 0.5s ease-out";
-            c.style.transform = `translate(${p.x}px, -45px) rotate(${p.r}deg)`;
-            await sleep(500);
-            c.style.transform = "translate(0, 0) rotate(0deg)";
-            await sleep(400);
-            // 内部配列の末尾に移動（物体の重なりシミュレート）
-            deck.push(deck.splice(p.pull, 1)[0]);
-        }
-        return deck;
-    }
-
-    async function startMagic() {
-        updateStatus("Magic Sequence");
-        await sleep(500);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await sleep(1000);
-
-        // --- 登場 ---
-        currentA.forEach((img, i) => {
-            const card = document.createElement('div');
-            card.className = 'card is-back';
-            card.style.left = 'calc(50% - 65px)';
-            card.style.zIndex = i;
-            card.style.opacity = 0; // 最初は隠す
-            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
-            table.appendChild(card);
-            // 順にフェードイン
-            setTimeout(() => card.classList.add('is-visible'), 100 * i);
-        });
-        await sleep(1500);
-
-        // --- 広げる ---
-        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
-        const cards = document.querySelectorAll('.card');
-        applyFanLayout(cards, 165, 12);
-        await sleep(2000);
-
-        pushMsg("スマートフォンのマイクが、<br>あなたの声を拾うかもしれません。");
-        await sleep(2500);
-        pushMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
-        await sleep(2500);
-
-        // 表を向く & フワフワ
-        for (let c of cards) { c.classList.remove('is-back'); c.classList.add('floating'); await sleep(200); }
-
-        // --- カウントダウン ---
-        timerDisplay.style.opacity = 1;
-        for (let i = 8; i >= 0; i--) { timerDisplay.innerText = i; if (i === 0) break; await sleep(900); }
-        timerDisplay.style.opacity = 0;
-
-        // --- 集合（左右から1.2秒でスッと集まる） ---
-        cards.forEach(c => {
-            c.classList.remove('floating'); 
-            c.style.animation = "none"; // アニメーションを確実に停止
-            c.classList.add('is-back'); // 裏返す
-            void c.offsetWidth; // 強制再描画（アニメーション干渉を防ぐ）
-            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
-            c.style.transform = "translate(0, 0) rotate(0deg)";
-        });
-        await sleep(1400);
-
-        // --- シャッフル（プロ・抜き取り式） ---
-        const newDeck = await performMagicShuffle(cards);
-        await sleep(600);
-
-        pushMsg("あなたの頭の中にあるカードを消してみせます...");
-        applyFanLayout(newDeck, 140, 9); // 再ファン（裏向き）
-        await sleep(1500);
-
-        // --- 黄金の消失（4s上昇） ---
-        const vanishCard = newDeck[2]; 
-        vanishCard.classList.remove('floating'); 
-        vanishCard.style.animation = "none";
-        vanishCard.style.zIndex = 300;
-        
-        const faceBack = vanishCard.querySelector('.card-back');
-        faceBack.classList.add('glow');
-        await sleep(1500);
-
-        const tx = vanishCard.style.getPropertyValue('--base-tx');
-        updateStatus("Rising...");
-        vanishCard.style.transition = "transform 4.0s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 2s";
-        vanishCard.style.transform = `translate(${tx}, -380px) rotate(0deg)`;
-        await sleep(4000);
-
-        updateStatus("Vanishing...");
-        // 消失（高度を維持したまま上へ溶ける）
-        vanishCard.style.transition = "transform 3.0s ease-in, opacity 2.5s ease-in, filter 2.5s ease-in";
-        vanishCard.style.opacity = "0";
-        vanishCard.style.filter = "blur(45px)";
-        vanishCard.style.transform = `translate(${tx}, -550px) scale(1.6)`;
-        await sleep(3000);
-
-        // --- 残り4枚の開示（スタックに戻らずファンの位置で） ---
-        pushMsg("あなたのカードだけが、消えました。");
-        table.innerHTML = ''; // 一旦クリア
-        
-        // 4枚を生成、最初から「裏向き・ファンの位置」に配置
-        const spacing = 165, rotateUnit = 12;
-        currentB.forEach((img, i) => {
-            const card = document.createElement('div');
-            card.className = 'card is-back'; // 最初はフェードイン
-            
-            // ファン座標を計算
-            const diff = i - (4 - 1) / 2;
-            const txVal = diff * spacing;
-            const tyVal = Math.abs(diff) * Math.abs(diff) * 15;
-            const rotVal = diff * rotateUnit;
-
-            // 初期位置を設定（裏向き、ファンの角度）
-            card.style.left = 'calc(50% - 65px)';
-            card.style.opacity = 0;
-            card.style.setProperty('--base-tx', txVal + "px");
-            card.style.setProperty('--base-ty', tyVal + "px");
-            c.style.setProperty('--base-rot', rotVal + "deg");
-            card.style.transform = `translate(${txVal}px, ${tyVal}px) rotate(${rotVal}deg)`;
-            
-            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
-            table.appendChild(card);
-            
-            // じわっと現れる（現れた瞬間すでにファンの位置）
-            setTimeout(() => card.classList.add('juwa-in'), 100 * i);
-        });
-
-        await sleep(2000); // 現れるのを待つ
-        
-        // その場で1枚ずつ表向きに（floatingを付与して情绪を出す）
-        const finalCards = document.querySelectorAll('.card');
-        for (let i = 0; i < finalCards.length; i++) {
-            const c = finalCards[i];
-            c.classList.remove('juwa-in');
-            
-            // 最後の一枚はゆっくり（動画のタメを再現）
-            if (i === 3) await sleep(2500);
-            else await sleep(750);
-            
-            c.style.transition = "transform 0.8s, opacity 0.5s";
-            c.classList.remove('is-back'); // 表を向く
-            c.classList.add('floating'); // 表を向いたらフワフワ開始
-        }
-
-        // --- フィナーレ ---
-        if (!isAdmin) localStorage.setItem('gioia_magic_played', 'true');
-        await sleep(3500);
-        pushMsg("不思議を感じましたか？");
-        await sleep(3000);
-        pushMsg("Gran GIOIA Ginzaでは、");
-        await sleep(3000);
-        pushMsg("WEBでは決して体験できない");
-        await sleep(3000);
-        pushMsg("「このレベルではない奇跡」をお届けします。");
-
-        await sleep(5000);
-        // カードを静かに消す
-        table.style.transition = "opacity 2s";
-        table.style.opacity = 0;
-        await sleep(2000);
-        
-        // 予約UIを表示
-        updateStatus("Finish");
-        const resUI = document.getElementById('reserve-ui');
-        resUI.classList.remove('hidden');
-        setTimeout(() => resUI.style.opacity = 1, 100);
-    }
-
-    function showReserveImmediately() {
-        document.getElementById('game-ui').style.display = 'none';
-        var res = document.getElementById('reserve-ui');
-        res.classList.remove('hidden');
-        res.style.opacity = 1;
-    }
-</script>
-</body>
-</html>
+        // 抜き取りシーケンス：[抜き取るインデックス(deck配列内 0〜3), 左右x, 回転r]
+        // deck[0]が一番下、deck[4]が一番上。ユーザーのご要望「二枚目を動かす（上から2枚目）」。
+        const
