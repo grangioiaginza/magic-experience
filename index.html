@@ -25,7 +25,6 @@
         .msg-line.top { opacity: 0.3; transform: translateY(-60px) scale(0.9); }
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
-        
         .msg-line.finale-block { position: relative; opacity: 1; transform: none; display: flex; flex-direction: column; gap: 15px; transition: opacity 2s; width: 100%; margin-top: 20px; }
 
         /* カード */
@@ -39,9 +38,9 @@
 
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
-            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 15px)) rotate(calc(var(--base-rot) + 1.5deg)); } 
+            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 18px)) rotate(calc(var(--base-rot) + 1.8deg)); } 
         }
-        .floating { animation: magicFloat 3.8s infinite ease-in-out !important; }
+        .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 60px 20px #f1d592 !important; transition: box-shadow 2.5s; }
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
         
@@ -54,26 +53,17 @@
         #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 10001; background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; }
     </style>
     <script>
-        // --- 究極のHoisting（最速定義） ---
         var isMagicStarted = false;
         async function igniteMagic() {
             if(isMagicStarted) return;
             isMagicStarted = true;
-
-            var entrance = document.getElementById('entrance');
-            var gameUI = document.getElementById('game-ui');
-            var status = document.getElementById('status-info');
-
-            // 1. 同期的に画面を切り替え（不発を防ぐ）
-            entrance.style.opacity = '0';
-            gameUI.style.display = 'block';
+            document.getElementById('entrance').style.opacity = '0';
+            document.getElementById('game-ui').style.display = 'block';
             setTimeout(function(){ 
-                entrance.style.display = 'none'; 
-                gameUI.style.opacity = '1'; 
+                document.getElementById('entrance').style.display = 'none'; 
+                document.getElementById('game-ui').style.opacity = '1'; 
+                performMagicSequence();
             }, 800);
-
-            // 以降、非同期の本編
-            performMagicSequence();
         }
 
         async function performMagicSequence() {
@@ -81,7 +71,6 @@
             var table = document.getElementById('card-table');
             var timer = document.getElementById('timer');
             var wait = function(ms) { return new Promise(function(r){ setTimeout(r, ms) }); };
-            
             var pushMsg = function(txt, isFinale) {
                 var el = document.createElement('div');
                 el.className = isFinale ? 'msg-line finale-block' : 'msg-line bottom';
@@ -115,156 +104,33 @@
                 table.appendChild(c);
                 setTimeout(function(){ c.classList.add('is-visible') }, 100);
             });
-            await wait(2200);
-
-            pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
-            var cards = document.querySelectorAll('.card');
-            var applyFan = function(spacing, rotUnit) {
-                cards.forEach(function(c, i) {
-                    var diff = i - (cards.length - 1) / 2;
-                    var tx = diff * spacing;
-                    var ty = Math.abs(diff) * Math.abs(diff) * 15;
-                    var rot = diff * rotUnit;
-                    c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
-                    c.style.opacity = 1;
-                    c.style.setProperty('--base-tx', tx + "px");
-                    c.style.setProperty('--base-ty', ty + "px");
-                    c.style.setProperty('--base-rot', rot + "deg");
-                    c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
-                });
-            };
-            applyFan(165, 12);
-            await wait(1500);
-
-            // ★ 表向きにする
-            cards.forEach(function(c, i) {
-                setTimeout(function(){ c.classList.remove('is-back') }, i * 150);
-            });
             await wait(2000);
 
-            // カウントダウン
-            timer.style.opacity = 1;
-            for (var i = 8; i >= 0; i--) { timer.innerText = i; await wait(950); }
-            timer.style.opacity = 0;
-
-            // 2行メッセージ
-            pushMsg("スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。");
-            cards.forEach(function(c){ c.classList.add('floating') });
-            await wait(4000);
-
-            // 集合
-            cards.forEach(function(c) {
-                c.className = 'card is-back is-visible';
-                c.style.animation = "none";
-                void c.offsetWidth;
-                c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
-                c.style.transform = "translate(0, 0) rotate(0deg)";
-            });
-            await wait(1500);
-
-            // --- 中抜きシャッフル ---
-            var deck = Array.from(document.querySelectorAll('.card')).sort(function(a,b){ return a.style.zIndex - b.style.zIndex });
-            var pulls = [{idx:3, x:290}, {idx:0, x:-290}, {idx:1, x:240}];
-            var topZ = 100;
-            for (var j = 0; j < pulls.length; j++) {
-                var action = pulls[j];
-                var target = deck[action.idx];
-                target.style.zIndex = topZ++;
-                target.style.transition = "transform 0.6s ease-in-out";
-                target.style.transform = "translate("+action.x+"px, -70px) rotate(15deg)";
-                await wait(650);
-                target.style.transform = "translate(0, 0) rotate(0deg)";
-                await wait(450);
-                deck.push(deck.splice(action.idx, 1)[0]);
-            }
-            await wait(1200);
-
-            pushMsg("あなたの頭の中にあるカードを消してみせます...");
-            deck.forEach(function(c, i) {
-                var diff = i - (deck.length - 1) / 2;
-                var tx = diff * 145;
+            // --- 修正シーケンス開始 ---
+            pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
+            var cards = document.querySelectorAll('.card');
+            
+            // 1. フワフワ開始
+            cards.forEach(function(c, i) {
+                var diff = i - (cards.length - 1) / 2;
+                var tx = diff * 165;
                 var ty = Math.abs(diff) * Math.abs(diff) * 15;
-                var rot = diff * 10;
+                var rot = diff * 12;
                 c.style.setProperty('--base-tx', tx + "px");
                 c.style.setProperty('--base-ty', ty + "px");
                 c.style.setProperty('--base-rot', rot + "deg");
                 c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+                c.classList.add('floating');
+            });
+            await wait(800);
+
+            // 2. 表向きに
+            cards.forEach(function(c, i) {
+                setTimeout(function(){ c.classList.remove('is-back') }, i * 150);
             });
             await wait(1800);
 
-            // 消失
-            var vCard = deck[2];
-            vCard.className = 'card is-back is-visible';
-            vCard.style.zIndex = 500;
-            vCard.querySelector('.card-back').classList.add('glow');
-            await wait(1500);
-
-            var vTx = vCard.style.getPropertyValue('--base-tx');
-            vCard.style.transition = "transform 4s ease-in-out, opacity 2.5s, filter 2s";
-            vCard.style.transform = "translate("+vTx+", -195px) rotate(3deg)";
-            await wait(3500);
-            vCard.style.opacity = '0'; vCard.style.filter = 'blur(30px)';
-            await wait(1000);
-
-            // 開示
-            pushMsg("あなたのカードだけが、消えました。");
-            var remaining = deck.filter(function(_, i){ return i !== 2 });
-            remaining.forEach(function(c, i){ c.querySelector('.card-front').style.backgroundImage = "url('"+currentB[i]+"')" });
-            await wait(1200);
-
-            for (var k = 0; k < remaining.length; k++) {
-                await wait(k === 3 ? 800 : 500);
-                remaining[k].classList.remove('is-back');
-                remaining[k].classList.add('floating');
-            }
-            await wait(2000);
-
-            var oldLines = msgBox.querySelectorAll('.msg-line:not(.finale-block)');
-            oldLines.forEach(function(l){ l.style.opacity = '0' });
-            await wait(500);
-
-            pushMsg("不思議を感じましたか？<br>Gran GIOIA Ginzaでは、<br>「このレベルではない奇跡」をお届けします。", true);
-
-            await wait(4500);
-            table.style.opacity = '0';
-            var reserveUI = document.getElementById('reserve-ui');
-            reserveUI.style.display = 'block';
-            setTimeout(function(){ 
-                reserveUI.style.opacity = 1; 
-                document.getElementById('status-info').style.opacity = 0; 
-            }, 100);
-        }
-
-        function sharePage() {
-            var url = window.location.href.split('?')[0];
-            if (navigator.share) navigator.share({ title: 'Gran GIOIA Ginza', url: url });
-            else alert("リンクをコピーしました：\n" + url);
-        }
-    </script>
-</head>
-<body>
-
-<div id="bg-canvas"></div>
-<div id="bg-curtain"></div>
-<div id="status-info">Build: 8600 | Absolute Zero Delay</div>
-
-<div id="entrance">
-    <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">Card Magic Experience</span></div>
-    <button class="start-btn" onclick="igniteMagic()">奇跡の扉を開く</button>
-</div>
-
-<div class="container">
-    <div id="game-ui">
-        <div id="msg-container"></div>
-        <div id="timer">8</div>
-        <div id="card-table"></div>
-    </div>
-    <div id="reserve-ui">
-        <div class="btn-group">
-            <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
-            <button class="btn secondary" onclick="sharePage()">このマジックを誰かに見せる</button>
-        </div>
-    </div>
-</div>
-</body>
-</html>
+            // 3. カウントダウン
+            timer.style.opacity = 1;
+            for (var i = 8; i >= 0; i--) {
+                timer.innerText =
