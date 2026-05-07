@@ -5,25 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gran GIOIA Ginza - Digital Magic</title>
     <style>
-        /* 1. 基本レイアウト & センタリング */
+        /* 1. 基本レイアウト */
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "MS PMincho", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
         .container { min-height: 100vh; width: 100vw; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
         
-        /* 2. メッセージ：PC・スマホ共に完全センタリング */
+        /* 2. メッセージ：PC・スマホ共に絶対横一行を死守 */
         #msg-container { 
-            height: 160px; width: 100%; position: relative; z-index: 100; overflow: visible;
+            height: 180px; width: 100%; position: relative; z-index: 100; overflow: visible;
             display: flex; justify-content: center; align-items: center;
         }
         .msg-line { 
-            position: absolute; width: 100%; left: 0; text-align: center;
+            position: absolute; width: 100vw; left: 0; text-align: center;
             transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); 
-            opacity: 0; font-size: 1.4rem; font-weight: normal; line-height: 1.6; letter-spacing: 0.15em; 
+            opacity: 0; font-size: 1.5rem; font-weight: normal; line-height: 1.6; letter-spacing: 0.15em; 
             text-shadow: 0 0 20px rgba(0,0,0,1);
+            white-space: nowrap; /* 縦並びを物理的に防止 */
         }
         .msg-line.center { opacity: 1; transform: translateY(0); }
-        .msg-line.top { opacity: 0.3; transform: translateY(-60px) scale(0.9); }
-        .msg-line.exit { opacity: 0; transform: translateY(-120px); }
-        .msg-line.bottom { opacity: 0; transform: translateY(60px); }
+        .msg-line.top { opacity: 0.3; transform: translateY(-70px) scale(0.9); }
+        .msg-line.exit { opacity: 0; transform: translateY(-140px); }
+        .msg-line.bottom { opacity: 0; transform: translateY(70px); }
 
         /* 3. カード演出エリア */
         #card-table { display: flex; justify-content: center; align-items: center; height: 350px; position: relative; width: 100%; max-width: 800px; }
@@ -32,32 +33,33 @@
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; filter: blur(0); }
 
-        /* スタック時の影（重なりを綺麗に） */
         .card.stacked { box-shadow: none !important; }
         .card.stacked .card-face { box-shadow: 0 2px 10px rgba(0,0,0,0.8) !important; }
 
-        /* シャッフルアニメーション */
-        @keyframes shuffle-jitter {
-            0%, 100% { transform: translate(0, 0); }
-            25% { transform: translate(15px, -5px); }
-            50% { transform: translate(-15px, 5px); }
-            75% { transform: translate(10px, 0); }
+        /* 黄金の輝きエフェクト */
+        .golden-glow {
+            box-shadow: 0 0 50px 15px rgba(241, 213, 146, 0.9) !important;
+            filter: brightness(1.2) drop-shadow(0 0 20px #f1d592) !important;
+            z-index: 500 !important;
         }
-        .shuffling { animation: shuffle-jitter 0.4s ease-in-out infinite; }
 
-        /* 浮遊・消失 */
+        /* アニメーション：シャッフル・浮遊・消失 */
+        @keyframes shuffle-jitter { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(15px, -5px); } 50% { transform: translate(-15px, 5px); } 75% { transform: translate(10px, 0); } }
+        .shuffling { animation: shuffle-jitter 0.4s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--base-rot)); } 50% { transform: translateY(-12px) rotate(calc(var(--base-rot) + 2deg)); } }
         .floating { animation: float 3.5s infinite ease-in-out; }
-        .juwa-out { animation: juwa-out 2.5s forwards; } /* 消失も少しゆっくりに */
-        @keyframes juwa-out { from { opacity: 1; filter: blur(0); transform: scale(1); } to { opacity: 0; filter: blur(40px); transform: scale(1.5); } }
+        .juwa-out { animation: juwa-out 2.8s forwards; }
+        @keyframes juwa-out { from { opacity: 1; filter: blur(0) brightness(1.2); transform: scale(1.1); } to { opacity: 0; filter: blur(50px) brightness(2); transform: scale(1.6); } }
 
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* タイマー */
+        /* タイマー（QSと重ならないように位置調整） */
         #timer { 
-            font-size: 7rem; font-weight: bold; color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            opacity: 0; pointer-events: none; z-index: 500; font-family: serif;
+            font-size: 7rem; font-weight: bold; color: #fff; position: absolute; 
+            top: 38%; /* カードより少し上に配置 */
+            left: 50%; transform: translate(-50%, -50%); 
+            opacity: 0; pointer-events: none; z-index: 600; font-family: serif;
             text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 50px #000;
         }
         
@@ -77,7 +79,7 @@
     <div style="font-size: 3rem; margin-top: 20px;">🔄</div>
 </div>
 
-<div id="version-info">Ver. Final: Eternal Vanish</div>
+<div id="version-info">Ver. Final: Golden Ascension</div>
 
 <div class="container">
     <div id="game-ui">
@@ -133,7 +135,6 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await sleep(2500);
 
-        // --- 1. 登場 ---
         cardsSetA.forEach((img, i) => {
             const card = document.createElement('div');
             card.className = 'card is-back is-visible stacked';
@@ -144,9 +145,8 @@
         });
 
         await sleep(1500);
-        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
+        pushMsg("この五枚のトランプの中から、直感で一枚を頭に強く念じてください。");
         
-        // --- 2. 配る ---
         await sleep(3000);
         const cards = document.querySelectorAll('.card');
         cards.forEach((c, i) => {
@@ -164,14 +164,11 @@
         pushMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
         await sleep(4500);
 
-        // --- 3. オープン ---
         for (let c of cards) { c.classList.remove('is-back'); c.classList.add('floating'); await sleep(250); }
 
-        // --- 4. 8秒カウント ---
         timerDisplay.style.opacity = 1;
         for (let i = 8; i >= 0; i--) { timerDisplay.innerText = i; if (i === 0) break; await sleep(900); }
 
-        // --- 5. 裏返し & 集合 & シャッフル ---
         timerDisplay.style.opacity = 0;
         cards.forEach(c => {
             c.classList.add('is-back', 'stacked');
@@ -181,7 +178,6 @@
         });
 
         await sleep(1000);
-        // シャッフル演出
         cards.forEach(c => c.classList.add('shuffling'));
         await sleep(1200);
         cards.forEach(c => c.classList.remove('shuffling'));
@@ -189,30 +185,31 @@
         await sleep(500);
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
         
-        // --- 6. 5枚のファン（裏向き） ---
         await sleep(1000);
         cards.forEach((c, i) => {
             const offset = (i - 2) * 125;
-            const rot = (i - 2) * 4;
+            const rot = (i - 2) * 3;
             c.classList.remove('stacked');
             c.style.left = `calc(50% - 65px + ${offset}px)`;
             c.style.transform = `rotate(${rot}deg)`;
         });
 
-        // --- 7. ゆっくりせり上がる ---
+        // --- 黄金のせり上がり ---
         await sleep(1500);
         const vanishCard = cards[2]; 
-        vanishCard.style.zIndex = 300;
-        vanishCard.style.transition = "top 2.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.8s, transform 0.8s, opacity 0.8s"; // せり上がりをゆっくりに
-        vanishCard.style.top = '-140px'; 
+        vanishCard.style.zIndex = 400;
+        // 黄金の輝きを追加
+        vanishCard.classList.add('golden-glow');
+        vanishCard.style.transition = "top 3.0s cubic-bezier(0.4, 0, 0.2, 1), transform 3.0s, opacity 1.0s, filter 1.0s"; 
+        vanishCard.style.top = '-160px'; 
+        vanishCard.style.transform = 'scale(1.1)';
         
-        await sleep(3000); // せり上がった状態で少し待つ
+        await sleep(3500); 
 
-        // --- 8. ジュワッと消失 ---
+        // --- ジュワッと消失 ---
         vanishCard.classList.add('juwa-out');
-        await sleep(2500);
+        await sleep(2800);
 
-        // --- 9. 残りの4枚が表向きになり確認 ---
         pushMsg("あなたのカードだけが、消えました。");
         table.innerHTML = '';
         cardsSetB.forEach((img, i) => {
