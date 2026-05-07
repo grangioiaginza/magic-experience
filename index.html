@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gran GIOIA Ginza - Digital Magic</title>
+    <style>
+        body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; text-align: center; margin: 0; overflow: hidden; }
+        .container { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
+        
+        /* テーブルの演出 */
+        #card-table { display: flex; justify-content: center; align-items: center; height: 350px; position: relative; width: 100%; max-width: 800px; }
+        
+        /* 3Dカードの構造 */
+        .card { width: 140px; height: 210px; position: absolute; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); perspective: 1000px; }
+        .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
+        .card.is-flipped .card-inner { transform: rotateY(180deg); }
+
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; }
+        .card-back { transform: rotateY(180deg); background-image: url('back.webp'); }
+
+        h1 { font-size: 1.5rem; font-weight: normal; letter-spacing: 0.1em; text-shadow: 0 0 10px rgba(241,213,146,0.5); margin-bottom: 30px; }
+        .btn { background: linear-gradient(135deg, #f1d592 0%, #b39352 100%); color: #000; border: none; padding: 15px 40px; font-size: 1rem; cursor: pointer; border-radius: 30px; font-weight: bold; margin-top: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .hidden { display: none; opacity: 0; }
+        #reserve-ui { padding: 20px; transition: opacity 1s; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="game-ui">
+        <h1 id="main-msg">この中の1枚を、心の中で決めてください</h1>
+        <div id="card-table"></div>
+        <button id="action-btn" class="btn" onclick="startMagic()">決めました</button>
+    </div>
+
+    <div id="reserve-ui" class="hidden">
+        <h1>不思議を感じましたか？</h1>
+        <p style="line-height: 1.8;">Gran GIOIA Ginza では、<br>WEBでは決して体験できない<br>「このレベルではない軌跡」をお届けします。</p>
+        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
+    </div>
+</div>
+
+<script>
+// 画像URLの設定
+    const cardsSetA = ['JH.webp', 'KD.webp', 'QS.webp', 'QD.webp', 'JC.webp'];
+    const cardsSetB = ['JS.webp', 'JD.webp', 'QC.webp', 'QH.webp'];
+
+    const table = document.getElementById('card-table');
+    const msg = document.getElementById('main-msg');
+    const btn = document.getElementById('action-btn');
+
+    // ★ 管理者モードの判定ロジック
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdmin = urlParams.get('mode') === 'gioia_admin'; // 合言葉を設定
+
+    window.onload = () => {
+        // 管理者モードでない、かつ既にプレイ済みの場合は予約画面へ
+        if (!isAdmin && localStorage.getItem('gioia_magic_played')) {
+            showReserve();
+        } else {
+            // 管理者の場合はLocalStorageをリセットして開始
+            if (isAdmin) {
+                localStorage.removeItem('gioia_magic_played');
+                console.log("Admin Mode: Resetting magic state.");
+            }
+            setupCards(cardsSetA);
+        }
+    };
+
+    function setupCards(images) {
+        table.innerHTML = '';
+        images.forEach((img, i) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            const offset = (i - (images.length-1)/2) * 155;
+            const rotation = (i - (images.length-1)/2) * 6;
+            card.style.left = `calc(50% - 70px + ${offset}px)`;
+            card.style.transform = `rotate(${rotation}deg)`;
+            
+            card.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-face card-front" style="background-image: url('${img}')"></div>
+                    <div class="card-face card-back"></div>
+                </div>
+            `;
+            table.appendChild(card);
+        });
+    }
+
+    function startMagic() {
+        // 管理者でない場合のみ、プレイ済みフラグを立てる
+        if (!isAdmin) {
+            localStorage.setItem('gioia_magic_played', 'true');
+        }
+        
+        btn.classList.add('hidden');
+        msg.innerText = "あなたの選んだカードを強く念じてください...";
+
+        const allCards = document.querySelectorAll('.card');
+        allCards.forEach(c => c.classList.add('is-flipped'));
+
+        setTimeout(() => {
+            allCards.forEach(c => {
+                c.style.left = 'calc(50% - 70px)';
+                c.style.transform = 'rotate(0deg)';
+                c.style.opacity = '0.5';
+            });
+        }, 1000);
+
+        setTimeout(() => {
+            setupCards(cardsSetB);
+            const newCards = document.querySelectorAll('.card');
+            newCards.forEach(c => {
+                c.classList.add('is-flipped');
+                c.style.opacity = '1';
+            });
+
+            setTimeout(() => {
+                msg.innerText = "あなたのカードを、抜き取りました。";
+                newCards.forEach(c => c.classList.remove('is-flipped'));
+                
+                setTimeout(() => {
+                    showReserve();
+                }, 3000);
+            }, 800);
+        }, 2500);
+    }
+
+    function showReserve() {
+        document.getElementById('game-ui').style.display = 'none';
+        document.getElementById('reserve-ui').classList.remove('hidden');
+        document.getElementById('reserve-ui').style.opacity = '1';
+    }
+</script>
+
+</body>
+</html>
