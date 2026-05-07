@@ -5,35 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gran GIOIA Ginza -Card Magic-</title>
     <style>
-        /* 1. 基本レイアウト */
+        /* 1. 基本レイアウト：PCでも絶対中央 */
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
-        .container { min-height: 100vh; width: 100vw; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5vh; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
+        .container { min-height: 100vh; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 2vh; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
         
-        /* 2. セリフコンテナ：PC/スマホ完全中央 */
-        #msg-container { height: 160px; width: 100%; position: relative; z-index: 100; overflow: visible; }
+        /* 2. メッセージエリア：PCでのセンタリングを修正 */
+        #msg-container { height: 160px; width: 100%; position: relative; z-index: 100; margin-bottom: 10px; }
         .msg-line { 
-            position: absolute; left: 50%; top: 50%; width: 95vw;
-            transform: translate(-50%, -50%);
+            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
             transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); 
             opacity: 0; font-size: 1.4rem; font-weight: normal; line-height: 1.6; letter-spacing: 0.15em; 
             text-shadow: 0 0 20px rgba(0,0,0,1);
             white-space: nowrap;
         }
-        .msg-line.center { opacity: 1; transform: translate(-50%, -50%); }
-        .msg-line.top { opacity: 0.3; transform: translate(-50%, -160%) scale(0.9); }
-        .msg-line.exit { opacity: 0; transform: translate(-50%, -260%); }
-        .msg-line.bottom { opacity: 0; transform: translate(-50%, 60%); }
+        .msg-line.center { opacity: 1; transform: translateY(0); }
+        .msg-line.top { opacity: 0.3; transform: translateY(-50px) scale(0.9); }
+        .msg-line.exit { opacity: 0; transform: translateY(-100px); }
+        .msg-line.bottom { opacity: 0; transform: translateY(50px); }
 
-        /* 3. カウントダウン：メッセージとカードの間に配置 */
+        /* 3. カウントダウン：メッセージとカードの間 */
         #timer { 
-            height: 100px; font-size: 6rem; font-weight: bold; color: #fff; 
+            height: 120px; width: 100%; font-size: 6.5rem; font-weight: bold; color: #fff; 
             display: flex; align-items: center; justify-content: center;
             opacity: 0; pointer-events: none; z-index: 500; font-family: serif;
             text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 0 50px #000;
-            transition: opacity 0.5s;
         }
 
-        /* 4. カードエリア */
+        /* 4. カードテーブル */
         #card-table { height: 350px; position: relative; width: 100%; max-width: 800px; display: flex; justify-content: center; align-items: center; transition: opacity 1.5s; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; filter: blur(10px); }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
@@ -42,8 +41,8 @@
         .card.stacked { box-shadow: none !important; }
         .card.stacked .card-face { box-shadow: 0 2px 10px rgba(0,0,0,0.8) !important; }
 
-        /* シャッフル & 浮遊 & 消失 */
-        @keyframes shuffle-anim { 0%, 100% { transform: translate(0, 0) rotate(0); } 20% { transform: translate(25px, -15px) rotate(3deg); } 40% { transform: translate(-25px, 15px) rotate(-3deg); } 60% { transform: translate(15px, 5px) rotate(1deg); } 80% { transform: translate(-15px, -5px) rotate(-1deg); } }
+        /* 特殊アニメーション */
+        @keyframes shuffle-anim { 0%, 100% { transform: translate(0, 0) rotate(0); } 20% { transform: translate(30px, -20px) rotate(4deg); } 40% { transform: translate(-30px, 20px) rotate(-4deg); } 60% { transform: translate(20px, 10px) rotate(2deg); } 80% { transform: translate(-20px, -10px) rotate(-2deg); } }
         .shuffling { animation: shuffle-anim 0.35s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0) rotate(var(--base-rot)); } 50% { transform: translateY(-12px) rotate(calc(var(--base-rot) + 2deg)); } }
         .floating { animation: float 3.5s infinite ease-in-out; }
@@ -53,15 +52,15 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 5. 補助要素 */
-        #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.5); z-index: 2000; }
+        /* 5. フィナーレ */
+        #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 20px; transition: 2s; opacity: 0; z-index: 600; text-align: center; }
+        .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.3rem; box-shadow: 0 5px 25px rgba(0,0,0,0.6); transition: 0.3s; }
+        .btn:hover { background: #fff; transform: scale(1.05); }
+
+        .hidden { display: none !important; }
+        #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.4); z-index: 2000; }
         #orientation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 3000; visibility: hidden; opacity: 0; }
         @media screen and (orientation: portrait) { #orientation-overlay { visibility: visible; opacity: 1; } }
-        
-        .hidden { display: none !important; }
-        #reserve-ui { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); width: 100%; padding: 20px; transition: 2s; opacity: 0; z-index: 600; }
-        .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; margin-top: 40px; box-shadow: 0 5px 25px rgba(0,0,0,0.6); transition: 0.3s; }
-        .btn:hover { background: #fff; transform: scale(1.05); }
     </style>
 </head>
 <body>
@@ -71,7 +70,7 @@
     <div style="font-size: 3rem; margin-top: 20px;">🔄</div>
 </div>
 
-<div id="version-info">Build: 1705</div>
+<div id="version-info">Build: 1810 (Master)</div>
 
 <div class="container">
     <div id="game-ui">
@@ -79,15 +78,22 @@
         <div id="timer">8</div>
         <div id="card-table"></div>
     </div>
-
     <div id="reserve-ui" class="hidden">
         <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
     </div>
 </div>
 
 <script>
-    const cardsSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
-    const cardsSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    // --- 3パターン・ランダム構成 ---
+    const pool = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp', './JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    const patterns = [
+        { a: [0,1,2,3,4], b: [5,6,7,8] },
+        { a: [4,5,6,7,8], b: [0,1,2,3] },
+        { a: [0,2,4,6,8], b: [1,3,5,7] }
+    ];
+
+    let currentA = [];
+    let currentB = [];
     const table = document.getElementById('card-table');
     const timerDisplay = document.getElementById('timer');
     const msgContainer = document.getElementById('msg-container');
@@ -100,9 +106,24 @@
             showReserveImmediately();
         } else {
             if (isAdmin) localStorage.removeItem('gioia_magic_played');
+            setupMagicPattern();
             initMagic();
         }
     };
+
+    function setupMagicPattern() {
+        const p = patterns[Math.floor(Math.random() * patterns.length)];
+        currentA = shuffle([...p.a].map(idx => pool[idx]));
+        currentB = shuffle([...p.b].map(idx => pool[idx]));
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -121,95 +142,138 @@
     }
 
     async function initMagic() {
-        await sleep(1000);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await sleep(2500);
+        try {
+            await sleep(1000);
+            pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+            await sleep(2500);
 
-        // --- 登場 ---
-        cardsSetA.forEach((img, i) => {
-            const card = document.createElement('div');
-            card.className = 'card is-back is-visible stacked';
-            card.style.left = 'calc(50% - 65px)';
-            card.style.zIndex = i;
-            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
-            table.appendChild(card);
-        });
+            // --- 登場 ---
+            currentA.forEach((img, i) => {
+                const card = document.createElement('div');
+                card.className = 'card is-back is-visible stacked';
+                card.style.left = 'calc(50% - 65px)';
+                card.style.zIndex = i;
+                card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
+                table.appendChild(card);
+            });
 
-        await sleep(2000);
-        // --- セリフと同時に配る ---
-        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
-        const cards = document.querySelectorAll('.card');
-        cards.forEach((c, i) => {
-            const offset = (i - 2) * 160;
-            const rot = (i - 2) * 5;
-            c.classList.remove('stacked');
-            c.style.left = `calc(50% - 65px + ${offset}px)`;
-            c.style.setProperty('--base-rot', `${rot}deg`);
-            c.style.transform = `rotate(${rot}deg)`;
-        });
+            await sleep(1500);
+            // --- セリフと同時に配る ---
+            pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((c, i) => {
+                const offset = (i - 2) * 160;
+                const rot = (i - 2) * 5;
+                c.classList.remove('stacked');
+                c.style.left = `calc(50% - 65px + ${offset}px)`;
+                c.style.setProperty('--base-rot', `${rot}deg`);
+                c.style.transform = `rotate(${rot}deg)`;
+            });
 
-        await sleep(3500);
-        pushMsg("スマートフォンのマイクが、<br>あなたの声を拾うかもしれません。");
-        await sleep(4500);
-        pushMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
-        await sleep(4500);
+            await sleep(3500);
+            pushMsg("スマートフォンのマイクが、<br>あなたの声を拾うかもしれません。");
+            await sleep(4500);
+            pushMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
+            await sleep(4500);
 
-        // --- めくる ---
-        for (let c of cards) { c.classList.remove('is-back'); c.classList.add('floating'); await sleep(250); }
+            // --- 表を向く ---
+            for (let c of cards) { c.classList.remove('is-back'); c.classList.add('floating'); await sleep(250); }
 
-        // --- 8秒カウントダウン ---
-        timerDisplay.style.opacity = 1;
-        for (let i = 8; i >= 0; i--) { timerDisplay.innerText = i; if (i === 0) break; await sleep(900); }
+            // --- カウントダウン ---
+            timerDisplay.style.opacity = 1;
+            for (let i = 8; i >= 0; i--) { timerDisplay.innerText = i; if (i === 0) break; await sleep(900); }
 
-        // --- 集合とシャッフル ---
-        timerDisplay.style.opacity = 0;
-        cards.forEach(c => {
-            c.classList.add('is-back', 'stacked');
-            c.classList.remove('floating');
-            c.style.left = 'calc(50% - 65px)';
-            c.style.transform = 'rotate(0deg)';
-        });
-        await sleep(1000);
-        cards.forEach(c => c.classList.add('shuffling'));
-        await sleep(1500);
-        cards.forEach(c => c.classList.remove('shuffling'));
+            // --- 集合とシャッフル ---
+            timerDisplay.style.opacity = 0;
+            cards.forEach(c => {
+                c.classList.add('is-back', 'stacked');
+                c.classList.remove('floating');
+                c.style.left = 'calc(50% - 65px)';
+                c.style.transform = 'rotate(0deg)';
+            });
+            await sleep(1000);
+            cards.forEach(c => c.classList.add('shuffling'));
+            await sleep(1500);
+            cards.forEach(c => c.classList.remove('shuffling'));
 
-        await sleep(500);
-        // --- セリフと同時にファン（裏向き） ---
-        pushMsg("あなたの頭の中にあるカードを消してみせます...");
-        cards.forEach((c, i) => {
-            const offset = (i - 2) * 130;
-            const rot = (i - 2) * 4;
-            c.classList.remove('stacked');
-            c.style.left = `calc(50% - 65px + ${offset}px)`;
-            c.style.transform = `rotate(${rot}deg)`;
-        });
+            await sleep(500);
+            // --- セリフと同時にファン（裏向き） ---
+            pushMsg("あなたの頭の中にあるカードを消してみせます...");
+            cards.forEach((c, i) => {
+                const offset = (i - 2) * 130;
+                const rot = (i - 2) * 4;
+                c.classList.remove('stacked');
+                c.style.left = `calc(50% - 65px + ${offset}px)`;
+                c.style.transform = `rotate(${rot}deg)`;
+            });
 
-        // --- ゆっくりせり上がる (3.5秒) ---
-        await sleep(1500);
-        const vanishCard = cards[2]; 
-        vanishCard.style.zIndex = 300;
-        vanishCard.style.transition = "top 3.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.8s, transform 0.8s, opacity 0.8s";
-        vanishCard.style.top = '-150px'; 
-        await sleep(4000); 
+            // --- せり上がり (3.5秒) ---
+            await sleep(1500);
+            const vanishCard = cards[2]; 
+            vanishCard.style.zIndex = 300;
+            vanishCard.style.transition = "top 3.5s cubic-bezier(0.4, 0, 0.2, 1), left 0.8s, transform 0.8s, opacity 0.8s";
+            vanishCard.style.top = '-150px'; 
+            await sleep(4200); 
 
-        // --- ジュワッと消失 (3.0秒) ---
-        vanishCard.classList.add('juwa-out');
-        await sleep(3000);
+            // --- 消失 ---
+            vanishCard.classList.add('juwa-out');
+            await sleep(3000);
 
-        // --- 残りの4枚が「ファンのまま」表向きになる ---
-        pushMsg("あなたのカードだけが、消えました。");
-        table.innerHTML = ''; // 一旦クリアしてSetBを展開
-        cardsSetB.forEach((img, i) => {
-            const card = document.createElement('div');
-            card.className = 'card is-back is-visible';
-            const offset = (i - 1.5) * 160;
-            const rot = (i - 1.5) * 5;
-            card.style.left = `calc(50% - 65px + ${offset}px)`;
-            card.style.setProperty('--base-rot', `${rot}deg`);
-            card.style.transform = `rotate(${rot}deg)`;
-            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
-            table.appendChild(card);
-        });
+            // --- 残りの4枚が「ファンのまま」表向きになる ---
+            pushMsg("あなたのカードだけが、消えました。");
+            table.innerHTML = '';
+            currentB.forEach((img, i) => {
+                const card = document.createElement('div');
+                card.className = 'card is-back is-visible';
+                const offset = (i - 1.5) * 160;
+                const rot = (i - 1.5) * 5;
+                card.style.left = `calc(50% - 65px + ${offset}px)`;
+                card.style.setProperty('--base-rot', `${rot}deg`);
+                card.style.transform = `rotate(${rot}deg)`;
+                card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
+                table.appendChild(card);
+            });
 
-        await sleep(1
+            await sleep(1500);
+            const finalCards = document.querySelectorAll('.card');
+            for (let i = 0; i < finalCards.length; i++) {
+                finalCards[i].classList.remove('is-back');
+                finalCards[i].classList.add('floating');
+                // 最後の一枚（インデックス3）だけ溜める
+                if (i === 3) await sleep(2200);
+                else await sleep(700);
+            }
+
+            // --- フィナーレ：メッセージとカードの別れ ---
+            if (!isAdmin) localStorage.setItem('gioia_magic_played', 'true');
+            await sleep(3000);
+            pushMsg("不思議を感じましたか？");
+            await sleep(3000);
+            pushMsg("Gran GIOIA Ginzaでは、");
+            await sleep(3000);
+            pushMsg("WEBでは決して体験できない");
+            await sleep(3000);
+            pushMsg("「このレベルではない奇跡」をお届けします。");
+            
+            await sleep(5000);
+            table.style.opacity = '0'; // カードが消える
+            await sleep(2000);
+            
+            const res = document.getElementById('reserve-ui');
+            res.classList.remove('hidden');
+            setTimeout(() => res.style.opacity = 1, 100);
+
+        } catch (e) {
+            document.getElementById('version-info').innerText = "JS Error: " + e.message;
+        }
+    }
+
+    function showReserveImmediately() {
+        document.getElementById('game-ui').classList.add('hidden');
+        const res = document.getElementById('reserve-ui');
+        res.classList.remove('hidden');
+        res.style.opacity = 1;
+    }
+</script>
+</body>
+</html>
