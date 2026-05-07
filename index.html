@@ -5,27 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 1. ブラックアウト・フリーズ対策：基本レイアウト */
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", "Hiragino Mincho ProN", serif; overflow: hidden; touch-action: none; }
+        /* ブラックアウト・フリーズを根絶するスタイル */
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
         .container { 
             width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('./SocialCover.webp') center/cover no-repeat;
-            position: relative; z-index: 1;
+            position: relative;
         }
-        #game-ui { width: 100%; z-index: 10; margin-top: 5vh; }
-
-        /* 2. メッセージ：完全中央 */
+        #game-ui { width: 100%; margin-top: 5vh; }
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
-            position: absolute; width: 100%; height: 100%; left: 0; top: 0; display: flex; align-items: center; justify-content: center;
-            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 20px #000; white-space: nowrap;
+            position: absolute; width: 100%; display: flex; align-items: center; justify-content: center;
+            transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 20px #000;
         }
         .msg-line.center { opacity: 1; transform: translateY(0); }
         .msg-line.top { opacity: 0.3; transform: translateY(-60px) scale(0.9); }
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
-        /* 3. カードテーブル */
         #card-table { height: 400px; width: 100%; max-width: 900px; position: relative; display: flex; justify-content: center; align-items: center; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
@@ -34,7 +31,6 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 4. アニメーション */
         @keyframes float { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
@@ -51,7 +47,7 @@
 <body>
 
 <div class="container">
-    <div id="status-info">Build: 3700 | Booting...</div>
+    <div id="status-info">Build: 3800 | Forced Boot</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -65,10 +61,103 @@
 </div>
 
 <script>
-    // --- グローバル変数 ---
-    var cardSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
-    var cardSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
+    // 1. グローバル定数
+    var setA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
+    var setB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
     var table, timer, msgBox;
     var currentB = [];
 
-    function updateLog(t) { document.getElementById('status-info').innerText = "Build: 3
+    function updateLog(t) { document.getElementById('status-info').innerText = "Build: 3800 | " + t; }
+
+    function shuffle(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = arr[i]; arr[i] = arr[j]; arr[j] = temp;
+        }
+        return arr;
+    }
+    function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
+
+    function pushMsg(txt) {
+        var lines = msgBox.querySelectorAll('.msg-line');
+        lines.forEach(function(l) {
+            if (l.classList.contains('top')) { l.classList.replace('top', 'exit'); setTimeout(function(){ l.remove(); }, 1200); }
+            else if (l.classList.contains('center')) { l.classList.replace('center', 'top'); }
+        });
+        var el = document.createElement('div');
+        el.className = 'msg-line bottom';
+        el.innerHTML = txt;
+        msgBox.appendChild(el);
+        el.offsetHeight; 
+        setTimeout(function(){ el.classList.replace('bottom', 'center'); }, 100);
+    }
+
+    function applyFan(cards, spacing, rotUnit, duration) {
+        cards.forEach(function(c, i) {
+            var diff = i - (cards.length - 1) / 2;
+            var tx = diff * spacing;
+            var ty = Math.abs(diff) * Math.abs(diff) * 15;
+            var rot = diff * rotUnit;
+            c.style.transition = "transform " + (duration || "1.0s") + " cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
+            c.style.opacity = 1;
+            c.style.left = "calc(50% - 65px)";
+            c.style.setProperty('--base-tx', tx + "px");
+            c.style.setProperty('--base-ty', ty + "px");
+            c.style.setProperty('--base-rot', rot + "deg");
+            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+        });
+    }
+
+    // 2. メインシーケンス
+    async function runMagic() {
+        updateLog("Running...");
+        await wait(1000);
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+        await wait(1500);
+
+        // 登場
+        var currentA = shuffle([...setA]);
+        currentB = shuffle([...setB]);
+        currentA.forEach(function(img, i) {
+            var c = document.createElement('div');
+            c.className = 'card is-back';
+            c.style.zIndex = i;
+            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+img+'\')"></div><div class="card-face card-back"></div></div>';
+            table.appendChild(c);
+            setTimeout(function(){ c.classList.add('is-visible'); }, i * 150);
+        });
+        await wait(2000);
+
+        pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
+        var cards = document.querySelectorAll('.card');
+        applyFan(cards, 165, 12);
+        await wait(2000);
+
+        pushMsg("スマートフォンのマイクが、あなたの声を拾うかもしれません。");
+        await wait(2500);
+        pushMsg("声に出さずあなたの頭の中だけで、一枚をしっかりと念じてください。");
+        await sleep(2500);
+
+        for (var i = 0; i < cards.length; i++) {
+            cards[i].classList.remove('is-back');
+            cards[i].classList.add('floating');
+            await wait(200);
+        }
+
+        timer.style.opacity = 1;
+        for (var i = 8; i >= 0; i--) { timer.innerText = i; if(i===0) break; await wait(900); }
+        timer.style.opacity = 0;
+
+        // --- 優雅な集合（1.2s） ---
+        updateLog("Collecting...");
+        cards.forEach(function(c) {
+            c.style.animation = "none"; 
+            c.classList.remove('floating');
+            c.classList.add('is-back');
+            void c.offsetWidth;
+            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1)";
+            c.style.transform = "translate(0, 0) rotate(0deg)";
+        });
+        await wait(1400);
+
+        // --- プロの中抜きシャッフル（二枚目を抜く） ---
