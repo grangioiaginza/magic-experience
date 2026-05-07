@@ -7,36 +7,39 @@
     <style>
         /* 1. 基本レイアウト */
         body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "MS PMincho", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
-        .container { min-height: 100vh; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
+        .container { min-height: 100vh; width: 100vw; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a 0%, #000 100%); }
         
-        /* 2. セリフのせり上がり（修正：縦並びを防止） */
+        /* 2. セリフのせり上がり（修正：横幅を100%確保） */
         #msg-container { 
-            height: 180px; width: 100%; position: relative; z-index: 100;
+            height: 160px; width: 100vw; position: relative; z-index: 100; overflow: visible;
         }
         .msg-line { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
+            position: absolute; top: 50%; left: 0; width: 100%;
             transition: all 1.2s cubic-bezier(0.19, 1, 0.22, 1); 
             opacity: 0; font-size: 1.3rem; font-weight: normal; line-height: 1.6; letter-spacing: 0.1em; 
             text-shadow: 0 0 15px rgba(0,0,0,1);
+            transform: translateY(-50%); /* 常に中央起点 */
+            white-space: nowrap; /* 強制的に1行にする（<br>は有効） */
         }
-        .msg-line.center { opacity: 1; transform: translateY(0); }
-        .msg-line.top { opacity: 0.4; transform: translateY(-50px) scale(0.9); }
-        .msg-line.exit { opacity: 0; transform: translateY(-100px); }
-        .msg-line.bottom { opacity: 0; transform: translateY(50px); }
+        
+        /* セリフの動き（Y軸固定） */
+        .msg-line.center { opacity: 1; transform: translateY(-50%); }
+        .msg-line.top { opacity: 0.4; transform: translateY(-150%) scale(0.9); }
+        .msg-line.exit { opacity: 0; transform: translateY(-250%); }
+        .msg-line.bottom { opacity: 0; transform: translateY(50%); }
 
         /* 3. カード演出エリア */
-        #card-table { display: flex; justify-content: center; align-items: center; height: 320px; position: relative; width: 100%; max-width: 800px; margin-top: -20px; }
+        #card-table { display: flex; justify-content: center; align-items: center; height: 320px; position: relative; width: 100%; max-width: 800px; }
         .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); opacity: 0; filter: blur(10px); }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s ease-in-out; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; filter: blur(0); }
 
-        /* 影の抑制（スタック時） */
+        /* スタック時の影抑制 */
         .card.stacked { box-shadow: none !important; }
         .card.stacked .card-face { box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important; }
 
-        /* 各種エフェクト */
+        /* エフェクト */
         .juwa-in { animation: juwa-in 1.5s forwards; }
         .juwa-out { animation: juwa-out 1.5s forwards; }
         @keyframes juwa-in { from { opacity: 0; filter: blur(20px); transform: scale(0.8); } to { opacity: 1; filter: blur(0); transform: scale(1); } }
@@ -47,7 +50,7 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 4. タイマー視認性 */
+        /* 4. タイマー（視認性最強） */
         #timer { 
             font-size: 7rem; font-weight: bold; color: #fff; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             opacity: 0; pointer-events: none; z-index: 500; font-family: 'Times New Roman', serif;
@@ -57,7 +60,7 @@
         /* 5. 補助要素 */
         #orientation-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; visibility: hidden; opacity: 0; transition: 0.5s; }
         @media screen and (orientation: portrait) { #orientation-overlay { visibility: visible; opacity: 1; } }
-        #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.5); font-family: sans-serif; z-index: 2000; }
+        #version-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.3); font-family: sans-serif; z-index: 2000; }
         .hidden { display: none !important; }
         #reserve-ui { padding: 40px; transition: 2s; opacity: 0; }
         .btn { background: #f1d592; border: none; padding: 15px 45px; border-radius: 40px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.1rem; margin-top: 20px; }
@@ -108,7 +111,6 @@
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    // メッセージせり上がり（絶対配置を管理）
     function pushMsg(newText) {
         const currentLines = msgContainer.querySelectorAll('.msg-line');
         currentLines.forEach(line => {
@@ -125,7 +127,7 @@
         newLine.innerHTML = newText;
         msgContainer.appendChild(newLine);
 
-        newLine.offsetHeight; // 強制描画
+        newLine.offsetHeight; 
         setTimeout(() => newLine.classList.replace('bottom', 'center'), 100);
     }
 
@@ -134,7 +136,6 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await sleep(2500);
 
-        // 1. 中央スタック登場
         cardsSetA.forEach((img, i) => {
             const card = document.createElement('div');
             card.className = 'card is-back juwa-in stacked';
@@ -147,7 +148,6 @@
         await sleep(2000);
         pushMsg("この五枚の中から、直感で一枚を頭に強く念じてください。");
         
-        // 2. ディーラー配り
         await sleep(3000);
         const cards = document.querySelectorAll('.card');
         cards.forEach((c, i) => {
@@ -166,14 +166,12 @@
         pushMsg("声に出さずあなたの頭の中だけで、<br>一枚のマークと数字をしっかりと念じてください。");
         await sleep(4500);
 
-        // 3. 表向き + 揺れ
         for (let c of cards) {
             c.classList.remove('is-back');
             c.classList.add('floating');
             await sleep(250);
         }
 
-        // 4. カウントダウン（8秒 / 0.9s間隔）
         timerDisplay.style.opacity = 1;
         for (let i = 8; i >= 0; i--) {
             timerDisplay.innerText = i;
@@ -181,7 +179,6 @@
             await sleep(900);
         }
 
-        // 5. 強制裏返し + 一度スタック
         timerDisplay.style.opacity = 0;
         cards.forEach(c => {
             c.classList.add('is-back', 'stacked');
@@ -193,65 +190,10 @@
         await sleep(1800);
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
         
-        // 6. 再びファン（裏向き）
         await sleep(1200);
         cards.forEach((c, i) => {
             const offset = (i - 2) * 125;
-            const rot = (i - 2) * 4;
+            const rot = (i - 2) * 3;
             c.classList.remove('stacked');
             c.style.left = `calc(50% - 65px + ${offset}px)`;
-            c.style.transform = `rotate(${rot}deg)`;
-        });
-
-        // 7. 真ん中の1枚がせり出す
-        await sleep(1500);
-        const vanishCard = cards[2]; 
-        vanishCard.style.zIndex = 300;
-        vanishCard.style.top = `-140px`; 
-        await sleep(1800);
-
-        // 8. ジュワッと消失
-        vanishCard.classList.add('juwa-out');
-        await sleep(2000);
-
-        // 9. SetB展開
-        pushMsg("あなたのカードだけが、消えました。");
-        table.innerHTML = '';
-        cardsSetB.forEach((img, i) => {
-            const card = document.createElement('div');
-            card.className = 'card is-back is-visible';
-            const offset = (i - 1.5) * 155;
-            const rot = (i - 1.5) * 5;
-            card.style.left = `calc(50% - 65px + ${offset}px)`;
-            card.style.setProperty('--base-rot', `${rot}deg`);
-            card.style.transform = `rotate(${rot}deg)`;
-            card.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
-            table.appendChild(card);
-        });
-
-        // 10. 1枚ずつ表になり、浮遊
-        await sleep(1500);
-        const finalCards = document.querySelectorAll('.card');
-        for (let c of finalCards) {
-            c.classList.remove('is-back');
-            c.classList.add('floating');
-            await sleep(650);
-        }
-
-        if (!isAdmin) localStorage.setItem('gioia_magic_played', 'true');
-        await sleep(5500);
-        showReserve();
-    }
-
-    function showReserve() {
-        document.getElementById('game-ui').style.opacity = 0;
-        setTimeout(() => {
-            document.getElementById('game-ui').classList.add('hidden');
-            const res = document.getElementById('reserve-ui');
-            res.classList.remove('hidden');
-            setTimeout(() => res.style.opacity = 1, 100);
-        }, 1200);
-    }
-</script>
-</body>
-</html>
+            c.style.transform = `rotate(${rot
