@@ -23,14 +23,12 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
-        /* カードテーブル：中心を絶対基準にする */
+        /* カードテーブル：中心を絶対基準 */
         #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
         .card { 
             width: 130px; height: 195px; position: absolute; 
-            left: 50%; /* 物理的な中央 */
+            left: 50%; transform: translateX(-50%); /* 基本位置を中央に固定 */
             perspective: 1200px; opacity: 0; pointer-events: none;
-            /* transformの初期値を translateX(-50%) に固定 */
-            transform: translateX(-50%); 
         }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
@@ -40,8 +38,8 @@
 
         /* 特殊演出 */
         @keyframes float { 
-            0%, 100% { transform: translateX(calc(-50% + var(--base-tx))) translate(0, var(--base-ty)) rotate(var(--base-rot)); } 
-            50% { transform: translateX(calc(-50% + var(--base-tx))) translate(0, calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
+            0%, 100% { transform: translateX(calc(-50% + var(--base-tx))) translateY(var(--base-ty)) rotate(var(--base-rot)); } 
+            50% { transform: translateX(calc(-50% + var(--base-tx))) translateY(calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
         }
         .floating { animation: float 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 80px 35px #f1d592 !important; transition: box-shadow 2s ease-in-out; }
@@ -59,7 +57,7 @@
 <div id="bg-curtain"></div>
 
 <div class="container">
-    <div id="status-info">Build: 6100 | Master Initializing...</div>
+    <div id="status-info">Build: 6200 | Initializing System...</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -77,7 +75,7 @@
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
     var table, timer, msgBox, currentB;
 
-    function log(t) { document.getElementById('status-info').innerText = "Build: 6100 | " + t; }
+    function log(t) { document.getElementById('status-info').innerText = "Build: 6200 | " + t; }
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     function pushMsg(txt) {
@@ -105,16 +103,15 @@
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
+            // 中央配置を崩さずに扇形にする
             c.style.transform = "translateX(calc(-50% + " + tx + "px)) translateY(" + ty + "px) rotate(" + rot + "deg)";
         });
     }
 
-    // --- メインエンジン ---
     async function performMagic() {
-        log("Action: Message Start");
-        // async開始直後にメッセージを予約
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await wait(1800);
+        log("Sequence Running");
+        // 第一声（すでに外側で1回出ているため、ここは演出の繋ぎ）
+        await wait(2000);
 
         function shuffleArr(arr) {
             for (var i = arr.length - 1; i > 0; i--) {
@@ -127,14 +124,4 @@
         var currentA = shuffleArr([...SET_A]);
         currentB = shuffleArr([...SET_B]);
         
-        currentA.forEach(function(img, i) {
-            var c = document.createElement('div');
-            c.className = 'card is-back';
-            c.style.zIndex = i;
-            c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+img+'\')"></div><div class="card-face card-back"></div></div>';
-            table.appendChild(c);
-            setTimeout(() => c.classList.add('is-visible'), i * 150);
-        });
-        await wait(2200);
-
-        pushMsg("この
+        currentA.
