@@ -7,14 +7,12 @@
     <style>
         /* 1. レイアウト基盤 */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
-        
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 1; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 2; }
-
         .container { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; }
         #game-ui { width: 100%; margin-top: 5vh; }
 
-        /* メッセージ：中央固定 */
+        /* メッセージ：完全中央 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; width: 100%; display: flex; align-items: center; justify-content: center;
@@ -25,14 +23,11 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
-        /* カードテーブル：中央を死守 */
-        #card-table { 
-            height: 420px; width: 100%; position: relative; 
-            display: flex; justify-content: center; align-items: center; 
-        }
+        /* カードテーブル：中心を絶対基準にする */
+        #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
         .card { 
             width: 130px; height: 195px; position: absolute; 
-            left: 50%; transform: translateX(-50%); /* 完璧な中央寄せ */
+            left: 50%; transform: translateX(-50%); /* 基本位置を中央に固定 */
             perspective: 1200px; opacity: 0; pointer-events: none;
         }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
@@ -43,17 +38,17 @@
 
         /* 特殊演出 */
         @keyframes float { 
-            0%, 100% { transform: translate(calc(-50% + var(--base-tx)), var(--base-ty)) rotate(var(--base-rot)); } 
-            50% { transform: translate(calc(-50% + var(--base-tx)), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
+            0%, 100% { transform: translateX(-50%) translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
+            50% { transform: translateX(-50%) translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
         }
-        .floating { animation: float 3.5s infinite ease-in-out !important; transform-origin: center center; }
+        .floating { animation: float 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 80px 35px #f1d592 !important; transition: box-shadow 2s ease-in-out; }
 
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
         #reserve-ui { position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; text-align: center; display: none; transition: 2.5s; }
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.3rem; }
         
-        #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 10000; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 5px; border: 1px solid #f1d592; }
+        #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 10000; background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; }
     </style>
 </head>
 <body>
@@ -62,7 +57,7 @@
 <div id="bg-curtain"></div>
 
 <div class="container">
-    <div id="status-info">Build: 5900 | Maximum Ignition</div>
+    <div id="status-info">Build: 6000 | Diamond Ignite</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -80,10 +75,7 @@
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
     var table, timer, msgBox, currentB;
 
-    function log(t) { 
-        var el = document.getElementById('status-info');
-        if(el) el.innerText = "Build: 5900 | " + t; 
-    }
+    function log(t) { document.getElementById('status-info').innerText = "Build: 6000 | " + t; }
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     function pushMsg(txt) {
@@ -108,17 +100,3 @@
             var rot = diff * rotUnit;
             c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
             c.style.opacity = 1;
-            c.style.setProperty('--base-tx', tx + "px");
-            c.style.setProperty('--base-ty', ty + "px");
-            c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transform = "translateX(-50%) translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
-        });
-    }
-
-    // --- メインマジックシーケンス ---
-    async function performMagic() {
-        log("Action: Running");
-        // 最初のメッセージ待機を短縮
-        await wait(500);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await wait(180
