@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
+    <title>マジックレストラン Gran GIOIA Ginza</title>
     <style>
         /* 1. レイアウト基盤 */
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; cursor: pointer; }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 1; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 2; }
         
@@ -28,9 +28,8 @@
         #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
         .card { 
             width: 130px; height: 195px; position: absolute; 
-            left: 50%; margin-left: -65px; /* 物理的センター固定 */
+            left: 50%; transform: translateX(-50%); /* 完璧な中央軸 */
             perspective: 1200px; opacity: 0; pointer-events: none;
-            transform: translate(0, 0) rotate(0deg);
         }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
@@ -40,8 +39,8 @@
 
         /* 特殊演出 */
         @keyframes magicFloat { 
-            0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
-            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
+            0%, 100% { transform: translateX(calc(-50% + var(--base-tx))) translateY(var(--base-ty)) rotate(var(--base-rot)); } 
+            50% { transform: translateX(calc(-50% + var(--base-tx))) translateY(calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
         }
         .floating { animation: magicFloat 3.8s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 85px 35px #f1d592 !important; transition: box-shadow 2.5s ease-in-out; }
@@ -51,15 +50,17 @@
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.3rem; }
         
         #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 10000; background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; border-radius: 4px; }
+        #click-hint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(241,213,146,0.5); font-size: 0.9rem; z-index: 500; display: none; }
     </style>
 </head>
-<body>
+<body onclick="forceIgnite()">
 
 <div id="bg-canvas"></div>
 <div id="bg-curtain"></div>
 
 <div class="container">
-    <div id="status-info">Build: 7000 | Platinum Ignition Confirmed</div>
+    <div id="status-info">Build: 7100 | Click screen to ignite magic</div>
+    <div id="click-hint">画面をクリックして奇跡を開始</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -75,20 +76,18 @@
 <script>
     var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
-    var table, timer, msgBox, currentB;
+    var table, timer, msgBox, currentB, isStarted = false;
 
-    function log(t) { 
-        var el = document.getElementById('status-info');
-        if(el) el.innerText = "Build: 7000 | " + t; 
-    }
+    function log(t) { document.getElementById('status-info').innerText = "Build: 7100 | " + t; }
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
     function pushMsg(txt) {
+        if(!msgBox) return;
         var el = document.createElement('div');
         el.className = 'msg-line bottom';
         el.innerHTML = txt;
         msgBox.appendChild(el);
-        void el.offsetWidth; // Force Reflow
+        void el.offsetWidth;
         var lines = msgBox.querySelectorAll('.msg-line');
         if(lines.length > 3) lines[0].remove();
         lines.forEach(function(l, idx) {
@@ -109,25 +108,18 @@
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+            c.style.transform = "translateX(calc(-50% + " + tx + "px)) translateY(" + ty + "px) rotate(" + rot + "deg)";
         });
     }
 
-    async function startMagicPerformance() {
-        log("Status: Executing Loop");
+    async function performMagic() {
+        if(isStarted) return;
+        isStarted = true;
+        document.getElementById('click-hint').style.display = 'none';
+        log("Status: Magic Initiated");
         
-        function shuffleArr(arr) {
-            for (var i = arr.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
-            }
-            return arr;
-        }
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+        await wait(1800);
 
-        var currentA = shuffleArr([...SET_A]);
-        currentB = shuffleArr([...SET_B]);
-        
-        currentA.forEach(function(img, i) {
-            var c = document.createElement('div');
-            c.className = 'card is-back';
-            c.style.zIndex = i;
+        function shuffleArr(arr) {
+            for (var i = arr.length - 1; i > 0
