@@ -5,27 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza</title>
     <style>
-        /* --- 基本レイアウト --- */
+        /* --- 基礎レイアウト --- */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 1; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); z-index: 2; }
         
         .container { position: relative; width: 100vw; height: 100vh; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 
-        /* エントランス */
+        /* エントランス（最前面） */
         #entrance {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 5000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: transparent; transition: opacity 0.8s ease;
         }
         .entrance-logo { font-size: 1.8rem; letter-spacing: 0.3em; margin-bottom: 40px; text-align: center; text-shadow: 0 0 25px #000; }
         .start-btn { 
-            background: rgba(0,0,0,0.6); border: 1px solid #f1d592; color: #f1d592; padding: 20px 50px; 
-            font-size: 1.2rem; cursor: pointer; transition: all 0.3s; letter-spacing: 0.2em; backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.7); border: 1px solid #f1d592; color: #f1d592; padding: 22px 60px; 
+            font-size: 1.3rem; cursor: pointer; transition: all 0.3s; letter-spacing: 0.2em; backdrop-filter: blur(8px);
         }
-        .start-btn:hover { background: #f1d592; color: #000; box-shadow: 0 0 30px #f1d592; }
+        .start-btn:hover { background: #f1d592; color: #000; box-shadow: 0 0 40px #f1d592; }
 
-        /* ナレーションエリア */
+        /* ゲームUI */
         #game-ui { width: 100%; margin-top: 5vh; display: none; opacity: 0; transition: opacity 1s; }
         #msg-container { height: 180px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         
@@ -38,13 +38,10 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
         
-        /* フィナーレ縦並び（固定表示） */
-        .msg-line.finale { 
-            position: relative; opacity: 1; transform: none; display: block; 
-            margin: 8px 0; transition: opacity 2s; width: 100%;
-        }
+        /* フィナーレ縦並び */
+        .msg-line.finale { position: relative; opacity: 1; transform: none; display: block; margin: 10px 0; transition: opacity 2s; width: 100%; }
 
-        /* カード配置（絶対座標） */
+        /* カード（絶対配置） */
         #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s; }
         .card { 
             width: 130px; height: 195px; position: absolute; 
@@ -66,7 +63,7 @@
 
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
         
-        /* 最終アクションボタン */
+        /* 最終UI */
         #reserve-ui { 
             position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); 
             width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2.5s; 
@@ -75,7 +72,7 @@
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
         .btn.secondary { background: none; border: 1px solid #f1d592; color: #f1d592; }
 
-        #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 10000; background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; }
+        #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 10001; background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; }
     </style>
 </head>
 <body>
@@ -83,11 +80,11 @@
 <div id="bg-canvas"></div>
 <div id="bg-curtain"></div>
 
-<div id="status-info">Build: 8000 | 100th Milestone Ready</div>
+<div id="status-info">Build: 8100 | Eternal Ready</div>
 
 <div id="entrance">
     <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">Card Magic Experience</span></div>
-    <button class="start-btn" onclick="igniteMagicNow()">奇跡の扉を開く</button>
+    <button class="start-btn" onclick="masterIgnition(this)">奇跡の扉を開く</button>
 </div>
 
 <div class="container">
@@ -96,28 +93,91 @@
         <div id="timer">8</div>
         <div id="card-table"></div>
     </div>
-
     <div id="reserve-ui">
         <div class="btn-group">
             <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
-            <button class="btn secondary" onclick="shareThisMagic()">このマジックを誰かに見せる</button>
+            <button class="btn secondary" onclick="shareMagic()">このマジックを誰かに見せる</button>
         </div>
     </div>
 </div>
 
 <script>
-    var table, timer, msgBox, currentB, isStarted = false;
+    var isFired = false;
     var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
     var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
 
-    function log(t) { document.getElementById('status-info').innerText = "Build: 8000 | " + t; }
-    function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+    // 共有機能
+    function shareMagic() {
+        const url = window.location.href.split('?')[0];
+        if (navigator.share) { navigator.share({ title: 'Gran GIOIA Ginza', url: url }); }
+        else { alert("リンクをコピーしました：\n" + url); }
+    }
 
-    function pushMsg(txt, isFinale = false) {
-        var el = document.createElement('div');
-        el.className = isFinale ? 'msg-line finale' : 'msg-line bottom';
-        el.innerHTML = txt;
-        msgBox.appendChild(el);
-        void el.offsetWidth;
-        if(isFinale) return;
-        var lines = msgBox.querySelectorAll('.msg-line:not
+    // --- メインエンジン ---
+    async function masterIgnition(btn) {
+        if(isFired) return;
+        isFired = true;
+
+        // 【物理直結】この瞬間にすべてのDOMを取得
+        const table = document.getElementById('card-table');
+        const timer = document.getElementById('timer');
+        const msgBox = document.getElementById('msg-container');
+        const entrance = document.getElementById('entrance');
+        const gameUI = document.getElementById('game-ui');
+        const status = document.getElementById('status-info');
+
+        const wait = (ms) => new Promise(r => setTimeout(r, ms));
+        const pushMsg = (txt, isFinale = false) => {
+            const el = document.createElement('div');
+            el.className = isFinale ? 'msg-line finale' : 'msg-line bottom';
+            el.innerHTML = txt;
+            msgBox.appendChild(el);
+            void el.offsetWidth;
+            if(isFinale) return;
+            const lines = msgBox.querySelectorAll('.msg-line:not(.finale)');
+            if(lines.length > 3) lines[0].remove();
+            lines.forEach((l, idx) => {
+                if(idx === lines.length - 1) setTimeout(() => l.className = 'msg-line center', 50);
+                else if(idx === lines.length - 2) l.className = 'msg-line top';
+                else l.className = 'msg-line exit';
+            });
+        };
+
+        // 画面遷移
+        entrance.style.opacity = '0';
+        gameUI.style.display = 'block';
+        setTimeout(() => { entrance.style.display = 'none'; gameUI.style.opacity = '1'; }, 800);
+
+        status.innerText = "Build: 8100 | Active Performance";
+        await wait(1000);
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+
+        // カード生成（じんわりフェードイン）
+        const currentA = [...SET_A].sort(() => Math.random() - 0.5);
+        const currentB = [...SET_B].sort(() => Math.random() - 0.5);
+        currentA.forEach((img, i) => {
+            const c = document.createElement('div');
+            c.className = 'card is-back';
+            c.style.zIndex = i;
+            c.innerHTML = `<div class="card-inner"><div class="card-face card-front" style="background-image:url('${img}')"></div><div class="card-face card-back"></div></div>`;
+            table.appendChild(c);
+            setTimeout(() => c.classList.add('is-visible'), 100); 
+        });
+        await wait(2200);
+
+        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
+        const cards = document.querySelectorAll('.card');
+        const applyFan = (spacing, rotUnit) => {
+            cards.forEach((c, i) => {
+                const diff = i - (cards.length - 1) / 2;
+                const tx = diff * spacing;
+                const ty = Math.abs(diff) * Math.abs(diff) * 15;
+                const rot = diff * rotUnit;
+                c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
+                c.style.opacity = 1;
+                c.style.setProperty('--base-tx', tx + "px");
+                c.style.setProperty('--base-ty', ty + "px");
+                c.style.setProperty('--base-rot', rot + "deg");
+                c.style.transform = `translate(${tx}px, ${ty}px) rotate(${rot}deg)`;
+            });
+        };
