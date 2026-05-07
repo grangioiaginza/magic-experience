@@ -5,16 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 1. レイアウト基盤：100%表示 */
+        /* 1. レイアウト基盤 */
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
         
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 1; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 2; }
 
-        .container { position: relative; width: 100vw; height: 100vh; z-index: 10; display: flex; flex-direction: column; align-items: center; }
+        .container { position: relative; width: 100%; height: 100%; z-index: 10; display: flex; flex-direction: column; align-items: center; }
         #game-ui { width: 100%; margin-top: 5vh; }
 
-        /* メッセージ中央固定 */
+        /* メッセージ：中央固定 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; width: 100%; display: flex; align-items: center; justify-content: center;
@@ -32,7 +32,7 @@
         }
         .card { 
             width: 130px; height: 195px; position: absolute; 
-            left: 50%; margin-left: -65px; /* 物理的な中央固定 */
+            left: 50%; transform: translateX(-50%); /* 完璧な中央寄せ */
             perspective: 1200px; opacity: 0; pointer-events: none;
         }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
@@ -43,10 +43,10 @@
 
         /* 特殊演出 */
         @keyframes float { 
-            0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
-            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
+            0%, 100% { transform: translate(calc(-50% + var(--base-tx)), var(--base-ty)) rotate(var(--base-rot)); } 
+            50% { transform: translate(calc(-50% + var(--base-tx)), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
         }
-        .floating { animation: float 3.5s infinite ease-in-out !important; }
+        .floating { animation: float 3.5s infinite ease-in-out !important; transform-origin: center center; }
         .glow { box-shadow: 0 0 80px 35px #f1d592 !important; transition: box-shadow 2s ease-in-out; }
 
         #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
@@ -62,7 +62,7 @@
 <div id="bg-curtain"></div>
 
 <div class="container">
-    <div id="status-info">Build: 5800 | Professional Ignition</div>
+    <div id="status-info">Build: 5900 | Maximum Ignition</div>
 
     <div id="game-ui">
         <div id="msg-container"></div>
@@ -82,7 +82,7 @@
 
     function log(t) { 
         var el = document.getElementById('status-info');
-        if(el) el.innerText = "Build: 5800 | " + t; 
+        if(el) el.innerText = "Build: 5900 | " + t; 
     }
     function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -102,4 +102,23 @@
 
     function applyFan(cards, spacing, rotUnit) {
         cards.forEach(function(c, i) {
-            var diff = i - (cards.
+            var diff = i - (cards.length - 1) / 2;
+            var tx = diff * spacing;
+            var ty = Math.abs(diff) * Math.abs(diff) * 15;
+            var rot = diff * rotUnit;
+            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
+            c.style.opacity = 1;
+            c.style.setProperty('--base-tx', tx + "px");
+            c.style.setProperty('--base-ty', ty + "px");
+            c.style.setProperty('--base-rot', rot + "deg");
+            c.style.transform = "translateX(-50%) translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+        });
+    }
+
+    // --- メインマジックシーケンス ---
+    async function performMagic() {
+        log("Action: Running");
+        // 最初のメッセージ待機を短縮
+        await wait(500);
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
+        await wait(180
