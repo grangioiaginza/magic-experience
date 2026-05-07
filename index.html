@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
-        /* 1. 基本レイアウト */
-        body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
+        /* 基本スタイル */
+        body { background-color: #000; color: #f1d592; font-family: "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", serif; text-align: center; margin: 0; overflow: hidden; touch-action: none; }
         .container { 
             min-height: 100vh; width: 100vw; position: relative; 
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 5vh; 
@@ -15,7 +15,7 @@
         .container::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 1; }
         #game-ui { position: relative; z-index: 10; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
-        /* 2. メッセージ：完全中央 */
+        /* メッセージ完全中央 */
         #msg-container { height: 160px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
         .msg-line { 
             position: absolute; left: 0; top: 0; width: 100%; height: 100%;
@@ -29,17 +29,10 @@
         .msg-line.exit { opacity: 0; transform: translateY(-120px); }
         .msg-line.bottom { opacity: 0; transform: translateY(60px); }
 
-        /* 3. カウントダウン */
-        #timer { 
-            height: 100px; font-size: 6rem; font-weight: bold; color: #fff; 
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; z-index: 500; font-family: serif;
-            text-shadow: 0 0 50px #000;
-        }
+        #timer { height: 100px; font-size: 6rem; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; opacity: 0; text-shadow: 0 0 50px #000; }
 
-        /* 4. カードテーブル */
         #card-table { height: 400px; position: relative; width: 100%; max-width: 900px; display: flex; justify-content: center; align-items: center; z-index: 10; }
-        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1); }
+        .card { width: 130px; height: 195px; position: absolute; perspective: 1000px; opacity: 0; will-change: transform; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -47,62 +40,17 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.3px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 5. 特殊エフェクト */
         @keyframes float { 
-            0%, 100% { transform: translate(var(--base-tx, 0px), var(--base-ty, 0px)) rotate(var(--base-rot, 0deg)); } 
-            50% { transform: translate(var(--base-tx, 0px), calc(var(--base-ty, 0px) - 20px)) rotate(calc(var(--base-rot, 0deg) + 2deg)); } 
+            0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
+            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 20px)) rotate(calc(var(--base-rot) + 2deg)); } 
         }
-        .floating { animation: float 3.5s infinite ease-in-out; }
-        
+        .floating { animation: float 3.5s infinite ease-in-out !important; }
         .juwa-in { animation: juwa-in 1.2s forwards; }
         @keyframes juwa-in { from { opacity: 0; filter: blur(20px); } to { opacity: 1; filter: blur(0); } }
 
-        /* 黄金の輝き */
         .glow { box-shadow: 0 0 60px 25px #f1d592 !important; transition: box-shadow 1.5s ease-in-out; }
 
-        /* 6. フィナーレ */
         #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 600; transition: 2s; text-align: center; }
         .btn { background: #f1d592; border: none; padding: 18px 55px; border-radius: 50px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; }
-
         .hidden { display: none !important; }
-        #status-info { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: rgba(241,213,146,0.5); z-index: 2000; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 3px; }
-    </style>
-</head>
-<body>
-
-<div id="status-info">Build: 2745 | Ready</div>
-
-<div class="container">
-    <div id="game-ui">
-        <div id="msg-container"></div>
-        <div id="timer">8</div>
-        <div id="card-table"></div>
-    </div>
-    <div id="reserve-ui" class="hidden">
-        <button class="btn" onclick="location.href='https://ginzagioia.studio.site/reservation'">特別な夜を予約する</button>
-    </div>
-</div>
-
-<script>
-    var fixedSetA = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
-    var fixedSetB = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
-    var currentA = [], currentB = [], isAdmin = false;
-    var table, timerDisplay, msgContainer, statusDisplay;
-
-    function updateStatus(msg, isError = false) {
-        if (!statusDisplay) statusDisplay = document.getElementById('status-info');
-        if (statusDisplay) {
-            statusDisplay.innerText = "Build: 2745 | " + msg;
-            if (isError) statusDisplay.style.color = "#ff4d4d";
-        }
-    }
-
-    window.onload = function() {
-        try {
-            table = document.getElementById('card-table');
-            timerDisplay = document.getElementById('timer');
-            msgContainer = document.getElementById('msg-container');
-            statusDisplay = document.getElementById('status-info');
-
-            var urlParams = new URLSearchParams(window.location.search);
-            isAdmin = urlParams.get('mode') === 'gioia_
+        #status-info { position: fixed; bottom: 10px; right: 10px; font-size
