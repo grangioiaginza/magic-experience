@@ -15,20 +15,25 @@
         /* エントランス */
         #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
         .entrance-logo { font-size: 1.8rem; letter-spacing: 0.3em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; }
-        .start-btn { background: #f1d592; color: #000; border: none; padding: 22px 65px; font-size: 1.2rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 280px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
+        .start-btn { background: #f1d592; color: #000; border: none; padding: 22px 65px; font-size: 1.2rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 280px; box-shadow: 0 0 30px rgba(241,213,146,0.5); transition: 0.3s; }
+        .start-btn:hover { background: #fff; transform: scale(1.05); }
 
         /* ナレーション */
         #game-ui { width: 100%; margin-top: 4vh; display: none; }
-        #msg-container { height: 140px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .msg-line { position: absolute; width: 100%; display: flex; align-items: center; justify-content: center; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 25px #000; white-space: nowrap; }
+        #msg-container { height: 120px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .msg-line { position: absolute; width: 100%; display: flex; align-items: center; justify-content: center; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 25px #000; }
         .msg-line.center { opacity: 1; transform: translateY(0); }
-        .msg-line.top { opacity: 0.3; transform: translateY(-50px) scale(0.9); }
-        .msg-line.exit { opacity: 0; transform: translateY(-100px); }
-        .msg-line.bottom { opacity: 0; transform: translateY(50px); }
+        .msg-line.top { opacity: 0.3; transform: translateY(-40px) scale(0.9); }
+        .msg-line.exit { opacity: 0; transform: translateY(-80px); }
 
-        /* 空間演出エリア（タイマー/指示/フィナーレ） */
-        #sub-msg-area { height: 120px; width: 100%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 1s ease; font-size: 1.3rem; letter-spacing: 0.1em; color: #f1d592; text-align: center; line-height: 1.8; text-shadow: 0 0 20px #000; z-index: 50; }
-        #timer { position: absolute; font-size: 6rem; font-weight: bold; color: #fff; opacity: 0; text-shadow: 0 0 50px #000; }
+        /* 空間演出エリア（タイマー数字とメッセージを縦に配置） */
+        #sub-msg-area { height: 160px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
+        #timer { font-size: 6rem; font-weight: bold; color: #fff; opacity: 0; text-shadow: 0 0 50px #000; transition: opacity 0.5s; height: 100px; line-height: 1; }
+        #dynamic-text { 
+            opacity: 0; transition: opacity 1.2s ease; font-size: 1.2rem; letter-spacing: 0.1em; 
+            color: #f1d592; text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; 
+            margin-top: 10px; /* タイマーのすぐ下へ */
+        }
 
         /* カード配置 */
         #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
@@ -48,7 +53,8 @@
         
         #reserve-ui { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2.5s; }
         .btn-group { display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: 0.3s; }
+        .btn:hover { background: #fff; transform: scale(1.05); }
         .btn.secondary { background: none; border: 1px solid #f1d592; color: #f1d592; }
 
         #status-info { position: fixed; bottom: 12px; right: 12px; font-size: 10px; color: #f1d592; z-index: 10001; background: rgba(0,0,0,0.8); padding: 5px 10px; border: 1px solid #f1d592; }
@@ -59,7 +65,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 9700 | Final Masterpiece Spec</div>
+<div id="status-info">Build: 9800 | Ultimate Hand Deal</div>
 
 <div id="entrance">
     <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">Card Magic Experience</span></div>
@@ -85,12 +91,13 @@
 
 <script>
     /*
-     * 「ここまで見るほどこのトリックが気に入って頂き有難う御座います。
+     * MASTER TRICK LOGIC:
+     * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
      * 私達プロマジシャンもトリックを愛し、大切にしています。
      * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
      * なので、最初の5枚のどれを選ばれても消えてしまうんです。
      * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
-     * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね」
+     * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね。
      */
     var isStarted = false;
     function sharePage() {
@@ -106,7 +113,6 @@
         var entrance = document.getElementById('entrance');
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
-        var subArea = document.getElementById('sub-msg-area');
         var dynamicText = document.getElementById('dynamic-text');
         var timerDisplay = document.getElementById('timer');
         var table = document.getElementById('card-table');
@@ -127,14 +133,14 @@
             });
         };
 
-        // 扉を開く
+        // --- 演出開始 ---
         entrance.style.opacity = '0';
         gameUI.style.display = 'block';
         setTimeout(() => { entrance.style.display = 'none'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
         
         await wait(1000);
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
-        await wait(2200);
+        await wait(2400);
 
         // --- 1. スタック出現 ➡ 配札（ディール） ---
         var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
@@ -146,35 +152,46 @@
         for(var i=0; i<5; i++) {
             var c = document.createElement('div');
             c.className = 'card is-back';
-            c.style.zIndex = i;
+            c.style.zIndex = i; // 4が物理的一番上
             c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+currentA[i]+'\')"></div><div class="card-face card-back"></div></div>';
             table.appendChild(c);
             cards.push(c);
         }
         
-        // スタックのじんわりフェードイン
+        // 山札（スタック）のじんわりフェードイン
         await wait(100);
         cards.forEach(c => { c.style.transition = "opacity 1.5s ease"; c.classList.add('is-visible'); });
         await wait(1800);
 
-        // 1枚ずつ配る
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
-        for(var i=0; i<cards.length; i++) {
-            var c = cards[i];
-            var diff = i - (cards.length - 1) / 2;
-            var tx = diff * 165;
-            var ty = Math.abs(diff) * Math.abs(diff) * 15;
-            var rot = diff * 12;
+        
+        // ★ ディール：一番上(index 4)から順に配る。ただし3枚目(index 2)は飛ばす
+        var dealIndices = [4, 3, 1, 0]; // index 2 を除外
+        var dealCount = 0;
+
+        for (let idx of [0, 1, 2, 3, 4]) {
+            let c = cards[idx];
+            let diff = idx - 2;
+            let tx = diff * 165;
+            let ty = Math.abs(diff) * Math.abs(diff) * 15;
+            let rot = diff * 12;
+
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transition = "transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s";
-            
-            (function(el, x, y, r, d) {
+            c.style.transition = "transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s";
+
+            // ★ 3枚目(idx 2)は配らない（その場に留める、またはアニメーションさせない）
+            if (idx === 2) {
+                // 中央に留める
+                c.style.transform = "translate(0, 0) rotate(0deg)";
+            } else {
+                // 配札。上から順に時間をずらして実行
+                let delay = [4,3,1,0].indexOf(idx) * 450;
                 setTimeout(() => {
-                    el.style.transform = "translate("+x+"px, "+y+"px) rotate("+r+"deg)";
-                }, d);
-            })(c, tx, ty, rot, i * 400);
+                    c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
+                }, delay);
+            }
         }
         await wait(2800);
 
@@ -185,14 +202,13 @@
         });
         await wait(1500);
 
-        // --- 2. カウントダウン（空間指示） ---
-        subArea.style.opacity = "1";
+        // --- 2. カウントダウン（タイマーの下にメッセージ） ---
         timerDisplay.style.opacity = "1";
         for (var i = 8; i >= 0; i--) {
             timerDisplay.innerText = i;
             if (i === 6) {
                 dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
-                timerDisplay.style.opacity = "0.2"; // 指示を見やすくするためタイマーを薄く
+                dynamicText.style.opacity = "1";
             }
             if (i === 0) break;
             await wait(1000);
@@ -213,16 +229,24 @@
 
         // --- 3. 真の【中抜き・トップ重ね】シャッフル (右・左・右) ---
         var getDeck = () => [...cards].sort((a,b) => a.style.zIndex - b.style.zIndex);
-        var shuffleSteps = [{x:350,r:22},{x:-350,r:-22},{x:350,r:18}];
+        var shuffleSteps = [
+            { x: 180, r: 12, msg: "Now Shuffling..." }, // 右（振り幅を小さく）
+            { x: -180, r: -12, msg: "Now Shuffling..." }, // 左
+            { x: 180, r: 10, msg: "Now Shuffling..." }  // 右
+        ];
+
+        dynamicText.style.opacity = "0.3"; // 薄く表示
 
         for (var j=0; j<shuffleSteps.length; j++) {
             var deck = getDeck();
-            var anchor = deck[4]; // 物理的一番上（不動）
-            var pull = deck[3];   // その下を抜く
+            var anchor = deck[4]; // 物理的一番上（不動アンカー）
+            var pull = deck[3];   // そのすぐ下を抜く
             var step = shuffleSteps[j];
 
+            dynamicText.innerText = step.msg;
+
             pull.style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
-            pull.style.transform = "translate("+step.x+"px, -65px) rotate("+step.r+"deg)";
+            pull.style.transform = "translate("+step.x+"px, -50px) rotate("+step.r+"deg)";
             await wait(650);
 
             var maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
@@ -230,13 +254,14 @@
             pull.style.transform = "translate(0, 0) rotate(0deg)";
             await wait(450);
         }
+        dynamicText.style.opacity = "0";
         await wait(1000);
 
         // --- 4. 消失演出 ---
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
         var finalDeck = getDeck();
         finalDeck.forEach((c, i) => {
-            var diff = i - (finalDeck.length - 1) / 2;
+            var diff = i - 2;
             var tx = diff * 145;
             var ty = Math.abs(diff) * Math.abs(diff) * 15;
             var rot = diff * 10;
@@ -260,7 +285,7 @@
         vCard.style.opacity = '0'; vCard.style.filter = 'blur(30px)';
         await wait(1000);
 
-        // --- 5. フィナーレ（空間配置） ---
+        // --- 5. フィナーレ（空間にじんわり出現） ---
         pushMsg("あなたのカードだけが、消えました。");
         var remaining = cards.filter(c => c !== vCard);
         remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = "url('"+currentB[i]+"')");
@@ -273,11 +298,11 @@
         }
         await wait(2000);
 
-        // 既存ナレーションを消去し、空間にフィナーレメッセージ
         msgBox.style.opacity = "0";
         dynamicText.innerHTML = "不思議を感じましたか？<br>Gran GIOIA Ginzaでは、<br>「このレベルではない奇跡」をお届けします。";
+        dynamicText.style.marginTop = "-50px"; // トランプの上に寄せる
+        dynamicText.style.transition = "opacity 1.5s ease"; // じんわりフェードイン
         dynamicText.style.opacity = "1";
-        subArea.style.opacity = "1";
 
         await wait(5500);
         table.style.opacity = '0';
