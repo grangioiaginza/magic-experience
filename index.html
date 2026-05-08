@@ -21,7 +21,7 @@
         /* ナレーションエリア */
         #game-ui { width: 100%; margin-top: 4vh; display: none; }
         #msg-container { height: 120px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .msg-line { position: absolute; width: 100%; display: flex; align-items: center; justify-content: center; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 25px #000; }
+        .msg-line { position: absolute; width: 100%; display: flex; align-items: center; justify-content: center; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 25px #000; white-space: nowrap; }
         .msg-line.center { opacity: 1; transform: translateY(0); }
         .msg-line.top { opacity: 0.3; transform: translateY(-40px) scale(0.9); }
         .msg-line.exit { opacity: 0; transform: translateY(-80px); }
@@ -47,6 +47,7 @@
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 60px 20px #f1d592 !important; transition: box-shadow 2.5s; }
         
+        /* 最終アクション */
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 20px; align-items: center; }
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: 0.3s; }
@@ -61,7 +62,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 10200 | Royal Deal Ready</div>
+<div id="status-info">Build: 10300 | Multi-Pattern Engine</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -95,6 +96,29 @@
      * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね」
      */
     var isStarted = false;
+    
+    // --- カードセット管理ロジック ---
+    const PATTERNS = [
+        {
+            A: ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'],
+            B: ['./JS.webp', './JD.webp', './QC.webp', './QH.webp']
+        },
+        {
+            A: ['./10S.webp', './9C.webp', './8D.webp', './9H.webp', './8C.webp'],
+            B: ['./10C.webp', './9S.webp', './8H.webp', './9D.webp']
+        }
+    ];
+
+    function getVisitPattern() {
+        // localStorageから訪問回数を取得
+        let visits = parseInt(localStorage.getItem('gioia_magic_visits') || '0');
+        visits++;
+        localStorage.setItem('gioia_magic_visits', visits.toString());
+        
+        // 奇数回ならパターン0 (J/Q/K)、偶数回ならパターン1 (8/9/10)
+        return PATTERNS[(visits - 1) % 2];
+    }
+
     function sharePage() {
         var url = window.location.href.split('?')[0];
         var shareTitle = 'マジックレストラン Gran GIOIA Ginza -Card Magic Experience-';
@@ -108,6 +132,8 @@
     async function igniteMiracle() {
         if(isStarted) return;
         isStarted = true;
+
+        var currentPattern = getVisitPattern(); // 回数に応じたパターンを取得
 
         var entrance = document.getElementById('entrance');
         var gameUI = document.getElementById('game-ui');
@@ -142,16 +168,13 @@
         await wait(2400);
 
         // --- 1. スタック出現 ➡ 指定順序のトップディール ---
-        var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
-        var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
-        var currentA = [...SET_A].sort(() => Math.random() - 0.5);
-        var currentB = [...SET_B].sort(() => Math.random() - 0.5);
+        var currentA = [...currentPattern.A].sort(() => Math.random() - 0.5);
+        var currentB = [...currentPattern.B].sort(() => Math.random() - 0.5);
 
         var cards = [];
         for(var i=0; i<5; i++) {
             var c = document.createElement('div');
             c.className = 'card is-back';
-            // 中央(zIndex 0)を底にし、配る順に上に積む(zIndex 1〜4)
             c.style.zIndex = i; 
             c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+currentA[i]+'\')"></div><div class="card-face card-back"></div></div>';
             table.appendChild(c);
@@ -163,15 +186,13 @@
 
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
         
-        // 【プロのトップディール：左、左中、右、右中 の順】
-        // cards[4]が一番上。これを指定の位置へ飛ばす。
         var positions = [-330, -165, 0, 165, 330];
         var dealTasks = [
-            { cardIdx: 4, posIdx: 0, delay: 0 },   // 1枚目(トップ) -> 左端
-            { cardIdx: 3, posIdx: 1, delay: 450 }, // 2枚目(トップ) -> 左中
-            { cardIdx: 2, posIdx: 4, delay: 900 }, // 3枚目(トップ) -> 右端
-            { cardIdx: 1, posIdx: 3, delay: 1350 },// 4枚目(トップ) -> 右中
-            { cardIdx: 0, posIdx: 2, delay: -1 }   // 5枚目(ボトム) -> 中央に留まる
+            { cardIdx: 4, posIdx: 0, delay: 0 },   // 1枚目 -> 左端
+            { cardIdx: 3, posIdx: 1, delay: 450 }, // 2枚目 -> 左中
+            { cardIdx: 2, posIdx: 4, delay: 900 }, // 3枚目 -> 右端
+            { cardIdx: 1, posIdx: 3, delay: 1350 },// 4枚目 -> 右中
+            { cardIdx: 0, posIdx: 2, delay: -1 }   // 5枚目 -> 中央保持
         ];
 
         for (let task of dealTasks) {
@@ -180,12 +201,10 @@
             let tx = positions[task.posIdx];
             let ty = Math.abs(diff) * Math.abs(diff) * 15;
             let rot = diff * 12;
-
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
             c.style.transition = "transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s";
-
             if (task.delay !== -1) {
                 setTimeout(() => { c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)"; }, task.delay);
             } else {
@@ -232,14 +251,12 @@
 
         for (var j=0; j<shuffleSteps.length; j++) {
             var deck = getDeck();
-            var pull = deck[3]; // アンカー(4)の直下を抜く
+            var pull = deck[3]; 
             var step = shuffleSteps[j];
             dynamicText.innerText = "Now Shuffling...";
-
             pull.style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
             pull.style.transform = "translate("+step.x+"px, -50px) rotate("+step.r+"deg)";
             await wait(650);
-
             var maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
             pull.style.transform = "translate(0, 0) rotate(0deg)";
@@ -289,7 +306,6 @@
         }
         await wait(2000);
 
-        // メッセージを上部にフェードイン
         msgBox.style.opacity = "0";
         dynamicText.innerHTML = "奇跡を感じましたか？<br>Gran GIOIA Ginzaでは、<br>あなたの眼の前で「奇跡」をお届けします。";
         dynamicText.style.marginTop = "-40px";
@@ -297,7 +313,6 @@
 
         await wait(3500); 
         
-        // カードを2秒かけてフェードアウトさせ、ボタンをフェードイン（クロスフェード）
         table.style.opacity = '0';
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
