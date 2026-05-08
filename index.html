@@ -40,6 +40,7 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.5px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
+        /* バラバラのフワフワ演出 */
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 18px)) rotate(calc(var(--base-rot) + 1.8deg)); } 
@@ -47,7 +48,6 @@
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 60px 20px #f1d592 !important; transition: box-shadow 2.5s; }
         
-        /* 最終アクション */
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 20px; align-items: center; }
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: 0.3s; }
@@ -62,7 +62,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 10300 | Multi-Pattern Engine</div>
+<div id="status-info">Build: 10500 | Triple Pattern Master</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -88,8 +88,8 @@
 
 <script>
     /*
-     * 「ここまで見るほどこのトリックが気に入って頂き有難う御座います。
-     * 私達プロマジシャンもトリックを愛し、大切にしています。
+     * MASTER TRICK MESSAGE:
+     * 「ここまで見るほどこのトリックが気に入って頂き有難う御座います。私達プロマジシャンもトリックを愛し、大切にしています。
      * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
      * なので、最初の5枚のどれを選ばれても消えてしまうんです。
      * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
@@ -97,7 +97,7 @@
      */
     var isStarted = false;
     
-    // --- カードセット管理ロジック ---
+    // --- 3パターン・サイクル・エンジン ---
     const PATTERNS = [
         {
             A: ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'],
@@ -106,17 +106,17 @@
         {
             A: ['./10S.webp', './9C.webp', './8D.webp', './9H.webp', './8C.webp'],
             B: ['./10C.webp', './9S.webp', './8H.webp', './9D.webp']
+        },
+        {
+            A: ['./6H.webp', './5D.webp', './6C.webp', './4S.webp', './5C.webp'],
+            B: ['./6D.webp', './5H.webp', './6S.webp', './4C.webp']
         }
     ];
 
     function getVisitPattern() {
-        // localStorageから訪問回数を取得
-        let visits = parseInt(localStorage.getItem('gioia_magic_visits') || '0');
-        visits++;
-        localStorage.setItem('gioia_magic_visits', visits.toString());
-        
-        // 奇数回ならパターン0 (J/Q/K)、偶数回ならパターン1 (8/9/10)
-        return PATTERNS[(visits - 1) % 2];
+        let count = parseInt(localStorage.getItem('gioia_magic_cycles') || '0');
+        localStorage.setItem('gioia_magic_cycles', (count + 1).toString());
+        return PATTERNS[count % PATTERNS.length];
     }
 
     function sharePage() {
@@ -133,8 +133,7 @@
         if(isStarted) return;
         isStarted = true;
 
-        var currentPattern = getVisitPattern(); // 回数に応じたパターンを取得
-
+        var pattern = getVisitPattern(); 
         var entrance = document.getElementById('entrance');
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
@@ -158,7 +157,7 @@
             });
         };
 
-        // 扉を開く
+        // 遷移開始
         entrance.style.opacity = '0';
         gameUI.style.display = 'block';
         setTimeout(() => { entrance.style.display = 'none'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
@@ -167,9 +166,9 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await wait(2400);
 
-        // --- 1. スタック出現 ➡ 指定順序のトップディール ---
-        var currentA = [...currentPattern.A].sort(() => Math.random() - 0.5);
-        var currentB = [...currentPattern.B].sort(() => Math.random() - 0.5);
+        // --- 1. スタック出現 ➡ トップディール ---
+        var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
+        var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
 
         var cards = [];
         for(var i=0; i<5; i++) {
@@ -186,6 +185,7 @@
 
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
         
+        // 【指定順序のトップディール：左 ➡ 左中 ➡ 右 ➡ 右中】
         var positions = [-330, -165, 0, 165, 330];
         var dealTasks = [
             { cardIdx: 4, posIdx: 0, delay: 0 },   // 1枚目 -> 左端
@@ -213,13 +213,15 @@
         }
         await wait(2800);
 
+        // バラバラ浮遊 & 反転
         cards.forEach((c) => {
+            c.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
             c.classList.add('floating');
             setTimeout(() => { c.classList.remove('is-back'); }, 300);
         });
         await wait(1500);
 
-        // --- 2. カウントダウン ---
+        // --- 2. カウントダウン（空間指示） ---
         timerDisplay.style.opacity = "1";
         for (var i = 8; i >= 0; i--) {
             timerDisplay.innerText = i;
@@ -246,16 +248,15 @@
 
         // --- 3. 真の【右左右】アンカー・シャッフル ---
         var getDeck = () => [...cards].sort((a,b) => a.style.zIndex - b.style.zIndex);
-        var shuffleSteps = [{x:180, r:12},{x:-180, r:-12},{x:180, r:10}];
+        var shuffleSteps = [{x:160, r:10},{x:-160, r:-10},{x:160, r:8}];
         dynamicText.style.opacity = "0.3"; 
-
         for (var j=0; j<shuffleSteps.length; j++) {
             var deck = getDeck();
             var pull = deck[3]; 
             var step = shuffleSteps[j];
             dynamicText.innerText = "Now Shuffling...";
             pull.style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
-            pull.style.transform = "translate("+step.x+"px, -50px) rotate("+step.r+"deg)";
+            pull.style.transform = "translate("+step.x+"px, -40px) rotate("+step.r+"deg)";
             await wait(650);
             var maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
@@ -313,6 +314,7 @@
 
         await wait(3500); 
         
+        // 優雅なクロスフェード：カードが消えゆく間にボタンが浮かぶ
         table.style.opacity = '0';
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
