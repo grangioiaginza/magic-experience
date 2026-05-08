@@ -40,7 +40,7 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.5px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* バラバラのフワフワ演出 */
+        /* ゆらぎのアニメーション */
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 18px)) rotate(calc(var(--base-rot) + 1.8deg)); } 
@@ -62,7 +62,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 10500 | Triple Pattern Master</div>
+<div id="status-info">Build: 10600 | Elegant Reveal Spec</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -97,7 +97,7 @@
      */
     var isStarted = false;
     
-    // --- 3パターン・サイクル・エンジン ---
+    // 3パターン・サイクル
     const PATTERNS = [
         {
             A: ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'],
@@ -113,7 +113,7 @@
         }
     ];
 
-    function getVisitPattern() {
+    function getPattern() {
         let count = parseInt(localStorage.getItem('gioia_magic_cycles') || '0');
         localStorage.setItem('gioia_magic_cycles', (count + 1).toString());
         return PATTERNS[count % PATTERNS.length];
@@ -133,7 +133,7 @@
         if(isStarted) return;
         isStarted = true;
 
-        var pattern = getVisitPattern(); 
+        var pattern = getPattern(); 
         var entrance = document.getElementById('entrance');
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
@@ -157,7 +157,7 @@
             });
         };
 
-        // 遷移開始
+        // 遷移
         entrance.style.opacity = '0';
         gameUI.style.display = 'block';
         setTimeout(() => { entrance.style.display = 'none'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
@@ -185,14 +185,14 @@
 
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
         
-        // 【指定順序のトップディール：左 ➡ 左中 ➡ 右 ➡ 右中】
+        // 配札順序：左 ➡ 左中 ➡ 右 ➡ 右中
         var positions = [-330, -165, 0, 165, 330];
         var dealTasks = [
-            { cardIdx: 4, posIdx: 0, delay: 0 },   // 1枚目 -> 左端
-            { cardIdx: 3, posIdx: 1, delay: 450 }, // 2枚目 -> 左中
-            { cardIdx: 2, posIdx: 4, delay: 900 }, // 3枚目 -> 右端
-            { cardIdx: 1, posIdx: 3, delay: 1350 },// 4枚目 -> 右中
-            { cardIdx: 0, posIdx: 2, delay: -1 }   // 5枚目 -> 中央保持
+            { cardIdx: 4, posIdx: 0, delay: 0 },
+            { cardIdx: 3, posIdx: 1, delay: 450 },
+            { cardIdx: 2, posIdx: 4, delay: 900 },
+            { cardIdx: 1, posIdx: 3, delay: 1350 },
+            { cardIdx: 0, posIdx: 2, delay: -1 }
         ];
 
         for (let task of dealTasks) {
@@ -201,10 +201,12 @@
             let tx = positions[task.posIdx];
             let ty = Math.abs(diff) * Math.abs(diff) * 15;
             let rot = diff * 12;
+
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
             c.style.transition = "transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s";
+
             if (task.delay !== -1) {
                 setTimeout(() => { c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)"; }, task.delay);
             } else {
@@ -213,15 +215,20 @@
         }
         await wait(2800);
 
-        // バラバラ浮遊 & 反転
-        cards.forEach((c) => {
-            c.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
-            c.classList.add('floating');
-            setTimeout(() => { c.classList.remove('is-back'); }, 300);
-        });
-        await wait(1500);
+        // --- ★ 順次リビール（左から順に一枚ずつ表を向き、浮遊） ---
+        // 物理的な並び順(左から): card 4, card 3, card 0, card 1, card 2
+        var revealOrder = [4, 3, 0, 1, 2];
+        for (let i = 0; i < revealOrder.length; i++) {
+            let c = cards[revealOrder[i]];
+            setTimeout(() => {
+                c.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
+                c.classList.add('floating');
+                c.classList.remove('is-back');
+            }, i * 400); // 0.4秒間隔で順にめくる
+        }
+        await wait(2000);
 
-        // --- 2. カウントダウン（空間指示） ---
+        // --- 2. カウントダウン ---
         timerDisplay.style.opacity = "1";
         for (var i = 8; i >= 0; i--) {
             timerDisplay.innerText = i;
@@ -246,7 +253,7 @@
         });
         await wait(1500);
 
-        // --- 3. 真の【右左右】アンカー・シャッフル ---
+        // --- 3. シャッフル ---
         var getDeck = () => [...cards].sort((a,b) => a.style.zIndex - b.style.zIndex);
         var shuffleSteps = [{x:160, r:10},{x:-160, r:-10},{x:160, r:8}];
         dynamicText.style.opacity = "0.3"; 
@@ -313,8 +320,6 @@
         dynamicText.style.opacity = "1";
 
         await wait(3500); 
-        
-        // 優雅なクロスフェード：カードが消えゆく間にボタンが浮かぶ
         table.style.opacity = '0';
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
