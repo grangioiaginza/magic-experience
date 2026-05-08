@@ -23,7 +23,7 @@
 
         #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
         .entrance-logo { font-size: 1.4rem; letter-spacing: 0.2em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; padding: 0 20px; line-height: 1.6; }
-        .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
+        .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); transition: 0.3s; }
 
         #game-ui { width: 100%; margin-top: 5vh; display: none; }
         #msg-container { height: 100px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -35,7 +35,7 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: #f1d592; text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 350px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: filter 2.5s; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -48,12 +48,15 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 消失時の光演出：zIndexはいじらず、光だけを強化 */
-        .glow { box-shadow: 0 0 70px 25px #f1d592 !important; transition: box-shadow 2.5s; }
+        /* ★重要：WebPの形に沿って光らせる drop-shadow 演出 */
+        .glow { 
+            filter: drop-shadow(0 0 15px #f1d592) drop-shadow(0 0 35px #f1d592) !important;
+        }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        .btn { background: #f1d592; border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        .btn { background: #f1d592; border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+        .btn:hover { background: #fff; transform: scale(1.05); }
         .btn.secondary { background: none; border: 1px solid #f1d592; color: #f1d592; }
 
         #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: #f1d592; z-index: 10001; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 1px solid #f1d592; opacity: 0.6; }
@@ -64,7 +67,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 11000 | The Spread Master</div>
+<div id="status-info">Build: 11100 | Luminous shape Master</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -144,14 +147,13 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await wait(2400);
 
-        // --- 1. 山札生成 ---
+        // --- 1. 山札生成（zIndexは左が底） ---
         var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
         var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
         var cards = [];
         for(var i=0; i<5; i++) {
             var c = document.createElement('div');
             c.className = 'card is-back';
-            // 左から順に置くため、 cards[0]が一番底(zIndex:10)
             c.style.zIndex = (i + 1) * 10; 
             c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+currentA[i]+'\')"></div><div class="card-face card-back"></div></div>';
             table.appendChild(c);
@@ -173,35 +175,28 @@
             { tx: 2 * span, ty: 24, rot: 24 }
         ];
 
-        // --- ★ 究極のリボンスプレッド（動く山札から底を落とす） ---
-        // 1. まず全カード（スタック）を左端へスライド
+        // --- リボンスプレッド（動く山札から底を落とす） ---
         cards.forEach(c => {
             c.style.transition = "transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)";
             c.style.transform = `translate(${targets[0].tx}px, ${targets[0].ty}px) rotate(${targets[0].rot}deg)`;
         });
         await wait(900);
 
-        // 2. 右へ掃きながらボトム（cards[i]）を置いていく
         for (let i = 0; i < cards.length; i++) {
             let droppedCard = cards[i];
             let t = targets[i];
-            
-            // 残っている山札（droppedCard以降のカードすべて）を次のターゲット位置へ動かす
             for (let j = i; j < cards.length; j++) {
                 cards[j].style.transition = "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)";
                 cards[j].style.transform = `translate(${t.tx}px, ${t.ty}px) rotate(${t.rot}deg)`;
             }
-            
-            // 置き去りにされるカードの定位置情報を保存
             droppedCard.style.setProperty('--base-tx', t.tx + "px");
             droppedCard.style.setProperty('--base-ty', t.ty + "px");
             droppedCard.style.setProperty('--base-rot', t.rot + "deg");
-
-            await wait(350); // 次のカードを置くまでの間隔
+            await wait(350);
         }
         await wait(500);
 
-        // --- 順次リビール（左から） ---
+        // --- 順次リビール ---
         for (let i = 0; i < cards.length; i++) {
             let c = cards[i];
             setTimeout(() => {
@@ -257,7 +252,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（zIndex維持） ---
+        // --- 4. 消失演出（zIndex維持 & 真の透明発光） ---
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 145;
@@ -274,7 +269,7 @@
         });
         await wait(1800);
 
-        // 3枚目(中央)をターゲット。zIndexは30のまま光る。
+        // 3枚目(中央)をターゲット。zIndexは維持したまま「形状に沿って」光る。
         var vCard = finalDeck[2]; 
         vCard.classList.add('glow'); 
         await wait(1500);
@@ -283,7 +278,9 @@
         vCard.style.transition = "transform 4s ease-in-out, opacity 2.5s, filter 2s";
         vCard.style.transform = `translate(${vTx}, -180px) rotate(3deg)`; 
         await wait(3500);
-        vCard.style.opacity = '0'; vCard.style.filter = 'blur(30px)';
+        vCard.style.opacity = '0'; 
+        // ぼかしながら消える
+        vCard.style.filter = 'blur(30px) brightness(2)';
         await wait(1000);
 
         // --- 5. フィナーレ ---
