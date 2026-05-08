@@ -18,7 +18,7 @@
         .start-btn { background: #f1d592; color: #000; border: none; padding: 22px 65px; font-size: 1.2rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 280px; box-shadow: 0 0 30px rgba(241,213,146,0.5); transition: 0.3s; }
         .start-btn:hover { background: #fff; transform: scale(1.05); }
 
-        /* ナレーション */
+        /* ナレーションエリア */
         #game-ui { width: 100%; margin-top: 4vh; display: none; }
         #msg-container { height: 120px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .msg-line { position: absolute; width: 100%; display: flex; align-items: center; justify-content: center; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 25px #000; }
@@ -29,11 +29,7 @@
         /* 空間演出エリア */
         #sub-msg-area { height: 160px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
         #timer { font-size: 6rem; font-weight: bold; color: #fff; opacity: 0; text-shadow: 0 0 50px #000; transition: opacity 0.5s; height: 100px; line-height: 1; }
-        #dynamic-text { 
-            opacity: 0; transition: opacity 1.5s ease; font-size: 1.3rem; letter-spacing: 0.1em; 
-            color: #f1d592; text-align: center; line-height: 1.8; text-shadow: 0 0 25px #000; 
-            margin-top: 10px;
-        }
+        #dynamic-text { opacity: 0; transition: opacity 1.5s ease; font-size: 1.3rem; letter-spacing: 0.1em; color: #f1d592; text-align: center; line-height: 1.8; text-shadow: 0 0 25px #000; margin-top: 10px; }
 
         /* カード配置 */
         #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; }
@@ -65,7 +61,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 10100 | Professional Spec</div>
+<div id="status-info">Build: 10200 | Royal Deal Ready</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -136,7 +132,7 @@
             });
         };
 
-        // 演出開始
+        // 扉を開く
         entrance.style.opacity = '0';
         gameUI.style.display = 'block';
         setTimeout(() => { entrance.style.display = 'none'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
@@ -145,7 +141,7 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await wait(2400);
 
-        // --- 1. 真のトップディール ---
+        // --- 1. スタック出現 ➡ 指定順序のトップディール ---
         var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
         var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
         var currentA = [...SET_A].sort(() => Math.random() - 0.5);
@@ -155,8 +151,7 @@
         for(var i=0; i<5; i++) {
             var c = document.createElement('div');
             c.className = 'card is-back';
-            // ★中央カードを一番底(0)にし、配る4枚をその上(1〜4)に積む。
-            // 4が最上面。これを順に外側へ飛ばす。
+            // 中央(zIndex 0)を底にし、配る順に上に積む(zIndex 1〜4)
             c.style.zIndex = i; 
             c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+currentA[i]+'\')"></div><div class="card-face card-back"></div></div>';
             table.appendChild(c);
@@ -168,15 +163,15 @@
 
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
         
-        // 【完全トップディール順序】
-        // 山札の上(zIndex 4, 3, 2, 1)から順に左右へ。zIndex 0(中央)は最後に残る。
+        // 【プロのトップディール：左、左中、右、右中 の順】
+        // cards[4]が一番上。これを指定の位置へ飛ばす。
         var positions = [-330, -165, 0, 165, 330];
         var dealTasks = [
-            { cardIdx: 4, posIdx: 0, delay: 0 },   // Top -> Far Left
-            { cardIdx: 3, posIdx: 1, delay: 450 }, // Top -> Mid Left
-            { cardIdx: 2, posIdx: 3, delay: 900 }, // Top -> Mid Right
-            { cardIdx: 1, posIdx: 4, delay: 1350 },// Top -> Far Right
-            { cardIdx: 0, posIdx: 2, delay: -1 }   // Bottom stays in middle
+            { cardIdx: 4, posIdx: 0, delay: 0 },   // 1枚目(トップ) -> 左端
+            { cardIdx: 3, posIdx: 1, delay: 450 }, // 2枚目(トップ) -> 左中
+            { cardIdx: 2, posIdx: 4, delay: 900 }, // 3枚目(トップ) -> 右端
+            { cardIdx: 1, posIdx: 3, delay: 1350 },// 4枚目(トップ) -> 右中
+            { cardIdx: 0, posIdx: 2, delay: -1 }   // 5枚目(ボトム) -> 中央に留まる
         ];
 
         for (let task of dealTasks) {
@@ -230,19 +225,21 @@
         });
         await wait(1500);
 
-        // --- 3. シャッフル (右左右) ---
+        // --- 3. 真の【右左右】アンカー・シャッフル ---
         var getDeck = () => [...cards].sort((a,b) => a.style.zIndex - b.style.zIndex);
         var shuffleSteps = [{x:180, r:12},{x:-180, r:-12},{x:180, r:10}];
         dynamicText.style.opacity = "0.3"; 
 
         for (var j=0; j<shuffleSteps.length; j++) {
             var deck = getDeck();
-            var pull = deck[3]; 
+            var pull = deck[3]; // アンカー(4)の直下を抜く
             var step = shuffleSteps[j];
             dynamicText.innerText = "Now Shuffling...";
+
             pull.style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
             pull.style.transform = "translate("+step.x+"px, -50px) rotate("+step.r+"deg)";
             await wait(650);
+
             var maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
             pull.style.transform = "translate(0, 0) rotate(0deg)";
@@ -292,14 +289,15 @@
         }
         await wait(2000);
 
+        // メッセージを上部にフェードイン
         msgBox.style.opacity = "0";
         dynamicText.innerHTML = "奇跡を感じましたか？<br>Gran GIOIA Ginzaでは、<br>あなたの眼の前で「奇跡」をお届けします。";
         dynamicText.style.marginTop = "-40px";
         dynamicText.style.opacity = "1";
 
-        await wait(3000); 
+        await wait(3500); 
         
-        // カードのフェードアウトとボタンのフェードイン（クロスフェード）
+        // カードを2秒かけてフェードアウトさせ、ボタンをフェードイン（クロスフェード）
         table.style.opacity = '0';
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
