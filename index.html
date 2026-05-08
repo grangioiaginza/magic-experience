@@ -18,9 +18,9 @@
         .start-btn { background: #f1d592; color: #000; border: none; padding: 22px 65px; font-size: 1.2rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 280px; box-shadow: 0 0 30px rgba(241,213,146,0.5); transition: 0.3s; }
         .start-btn:hover { background: #fff; transform: scale(1.05); }
 
-        /* ナレーション */
+        /* ナレーションエリア */
         #game-ui { width: 100%; margin-top: 4vh; display: none; }
-        #msg-container { height: 120px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #msg-container { height: 120px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transition: opacity 1.5s; }
         .msg-line { position: absolute; width: 100%; display: flex; align-items: center; justify-content: center; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.4rem; letter-spacing: 0.15em; text-shadow: 0 0 25px #000; }
         .msg-line.center { opacity: 1; transform: translateY(0); }
         .msg-line.top { opacity: 0.3; transform: translateY(-40px) scale(0.9); }
@@ -30,13 +30,13 @@
         #sub-msg-area { height: 160px; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
         #timer { font-size: 6rem; font-weight: bold; color: #fff; opacity: 0; text-shadow: 0 0 50px #000; transition: opacity 0.5s; height: 100px; line-height: 1; }
         #dynamic-text { 
-            opacity: 0; transition: opacity 1.2s ease; font-size: 1.3rem; letter-spacing: 0.1em; 
+            opacity: 0; transition: opacity 1.5s ease; font-size: 1.3rem; letter-spacing: 0.1em; 
             color: #f1d592; text-align: center; line-height: 1.8; text-shadow: 0 0 25px #000; 
             margin-top: 10px;
         }
 
-        /* カード配置 */
-        #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
+        /* カード配置：フェードアウト用 transition 追加 */
+        #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; }
         .card { width: 130px; height: 195px; position: absolute; left: 50%; margin-left: -65px; perspective: 1200px; opacity: 0; pointer-events: none; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
@@ -51,7 +51,8 @@
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         .glow { box-shadow: 0 0 60px 20px #f1d592 !important; transition: box-shadow 2.5s; }
         
-        #reserve-ui { position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s; }
+        /* 最終アクションエリア：フェードイン用 */
+        #reserve-ui { position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 20px; align-items: center; }
         .btn { background: #f1d592; border: none; padding: 20px 60px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1.2rem; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: 0.3s; }
         .btn:hover { background: #fff; transform: scale(1.05); }
@@ -65,7 +66,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 9900 | Executive Ready</div>
+<div id="status-info">Build: 10000 | Grand Finale</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -101,8 +102,13 @@
     var isStarted = false;
     function sharePage() {
         var url = window.location.href.split('?')[0];
-        if (navigator.share) navigator.share({ title: 'マジックレストラン Gran GIOIA Ginza', url: url });
-        else alert("リンクをコピーしました：\n" + url);
+        // サイトタイトルと同様に変更
+        var shareTitle = 'マジックレストラン Gran GIOIA Ginza -Card Magic Experience-';
+        if (navigator.share) {
+            navigator.share({ title: shareTitle, url: url });
+        } else {
+            alert("リンクをコピーしました：\n" + url);
+        }
     }
 
     async function igniteMiracle() {
@@ -135,7 +141,7 @@
         // 開始
         entrance.style.opacity = '0';
         gameUI.style.display = 'block';
-        setTimeout(() => { entrance.style.display = 'none'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
+        setTimeout(() => { entrance.style.display = 'none'; gameUI.style.opacity = '1'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
         
         await wait(1000);
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
@@ -162,15 +168,14 @@
 
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
         
-        // 【プロのトップディール】
-        // 山札の一番上(cards[4])から順に外側へ配る。3枚目(cards[2])は配らずに残す。
+        // トップディール（ボトムを避ける）
         var positions = [-330, -165, 0, 165, 330];
         var dealOrder = [
-            { cardIdx: 4, posIdx: 0, delay: 0 },   // トップ1枚目 -> 一番左
-            { cardIdx: 3, posIdx: 1, delay: 450 }, // トップ2枚目 -> 左中
-            { cardIdx: 2, posIdx: 2, delay: -1 },  // 3枚目 -> スキップ（中央に留まる）
-            { cardIdx: 1, posIdx: 3, delay: 900 }, // トップ4枚目 -> 右中
-            { cardIdx: 0, posIdx: 4, delay: 1350 } // トップ5枚目 -> 一番右
+            { cardIdx: 4, posIdx: 0, delay: 0 },   
+            { cardIdx: 3, posIdx: 1, delay: 450 }, 
+            { cardIdx: 2, posIdx: 2, delay: -1 },  
+            { cardIdx: 1, posIdx: 3, delay: 900 }, 
+            { cardIdx: 0, posIdx: 4, delay: 1350 } 
         ];
 
         for (let task of dealOrder) {
@@ -179,16 +184,12 @@
             let tx = positions[task.posIdx];
             let ty = Math.abs(diff) * Math.abs(diff) * 15;
             let rot = diff * 12;
-
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
             c.style.transition = "transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s";
-
             if (task.delay !== -1) {
-                setTimeout(() => {
-                    c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
-                }, task.delay);
+                setTimeout(() => { c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)"; }, task.delay);
             } else {
                 c.style.transform = "translate(0,0) rotate(0deg)";
             }
@@ -228,23 +229,16 @@
 
         // --- 3. 真の【右左右】アンカー・シャッフル ---
         var getDeck = () => [...cards].sort((a,b) => a.style.zIndex - b.style.zIndex);
-        var shuffleSteps = [
-            { x: 180, r: 12 }, // 右
-            { x: -180, r: -12 }, // 左
-            { x: 180, r: 10 }   // 右
-        ];
-
+        var shuffleSteps = [{ x: 180, r: 12 },{ x: -180, r: -12 },{ x: 180, r: 10 }];
         dynamicText.style.opacity = "0.3"; 
         for (var j=0; j<shuffleSteps.length; j++) {
             var deck = getDeck();
-            var pull = deck[3]; // 一番上(4)の下を抜く
+            var pull = deck[3]; 
             var step = shuffleSteps[j];
             dynamicText.innerText = "Now Shuffling...";
-
             pull.style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
             pull.style.transform = "translate("+step.x+"px, -50px) rotate("+step.r+"deg)";
             await wait(650);
-
             var maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
             pull.style.transform = "translate(0, 0) rotate(0deg)";
@@ -281,7 +275,7 @@
         vCard.style.opacity = '0'; vCard.style.filter = 'blur(30px)';
         await wait(1000);
 
-        // --- 5. フィナーレ（メッセージ維持 ➡ ボタン出現） ---
+        // --- 5. フィナーレ（クロスフェード） ---
         pushMsg("あなたのカードだけが、消えました。");
         var remaining = cards.filter(c => c !== vCard);
         remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = "url('"+currentB[i]+"')");
@@ -294,17 +288,18 @@
         }
         await wait(2000);
 
-        // メッセージを上部に固定表示
+        // メッセージを上部にフェードイン
         msgBox.style.opacity = "0";
         dynamicText.innerHTML = "奇跡を感じましたか？<br>Gran GIOIA Ginzaでは、<br>あなたの眼の前で「奇跡」をお届けします。";
         dynamicText.style.marginTop = "-40px";
-        dynamicText.style.transition = "opacity 1.5s ease";
         dynamicText.style.opacity = "1";
 
-        await wait(2500); // メッセージを読ませる
+        await wait(3000); 
         
-        // カードをフェードアウトさせつつ、ボタンを表示（メッセージは残る）
+        // ★ カードを2秒かけてフェードアウト
         table.style.opacity = '0';
+        
+        // ★ それとクロスフェードするようにボタンを出現（メッセージは残る）
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
         setTimeout(() => { 
