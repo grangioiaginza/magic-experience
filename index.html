@@ -13,7 +13,7 @@
         .container { position: relative; width: 100vw; height: 100vh; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 
         /* エントランス */
-        #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); transition: opacity 0.8s ease; }
+        #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); transition: opacity 0.8s ease; }
         .entrance-logo { font-size: 1.8rem; letter-spacing: 0.3em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; }
         .start-btn { background: #f1d592; color: #000; border: none; padding: 22px 65px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: 0.3s; letter-spacing: 0.2em; min-width: 280px; box-shadow: 0 0 30px rgba(241,213,146,0.3); }
         .start-btn:hover { transform: scale(1.05); background: #fff; }
@@ -30,7 +30,7 @@
 
         /* カード配置 */
         #card-table { height: 420px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
-        .card { width: 130px; height: 195px; position: absolute; left: 50%; margin-left: -65px; perspective: 1200px; opacity: 0; pointer-events: none; }
+        .card { width: 130px; height: 195px; position: absolute; left: 50%; margin-left: -65px; perspective: 1200px; opacity: 0; pointer-events: none; transform: translate(0, 50px); }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -58,7 +58,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 9100 | Anchor Secured</div>
+<div id="status-info">Build: 9300 | Ultimate Deal</div>
 
 <div id="entrance">
     <div class="entrance-logo">Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">Card Magic Experience</span></div>
@@ -80,14 +80,6 @@
 </div>
 
 <script>
-    /*
-     * 「ここまで見るほどこのトリックが気に入って頂き有難う御座います。
-     * 私達プロマジシャンもトリックを愛し、大切にしています。
-     * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
-     * なので、最初の5枚のどれを選ばれても消えてしまうんです。
-     * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
-     * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね」
-     */
     var isStarted = false;
     function sharePage() {
         var url = window.location.href.split('?')[0];
@@ -131,7 +123,7 @@
         await wait(1000);
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
 
-        // --- 1. 情緒的な配札（ディール） ---
+        // --- 1. 真のディール（配札）準備 ---
         var SET_A = ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'];
         var SET_B = ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'];
         var currentA = [...SET_A].sort(() => Math.random() - 0.5);
@@ -145,33 +137,43 @@
             c.innerHTML = '<div class="card-inner"><div class="card-face card-front" style="background-image:url(\''+currentA[i]+'\')"></div><div class="card-face card-back"></div></div>';
             table.appendChild(c);
             cardElements.push(c);
-            setTimeout((el) => el.classList.add('is-visible'), i * 400, c);
         }
-        await wait(2400);
+        await wait(500);
 
-        // --- 2. 選択と浮遊・反転 ---
+        // --- 2. 1枚ずつ定位置へ飛ばす（ディール） ---
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
-        cardElements.forEach((c, i) => {
+        for(var i=0; i<cardElements.length; i++) {
+            var c = cardElements[i];
             var diff = i - (cardElements.length - 1) / 2;
             var tx = diff * 165;
             var ty = Math.abs(diff) * Math.abs(diff) * 15;
             var rot = diff * 12;
+            
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
-            c.style.transition = "transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s";
-            c.style.transform = "translate("+tx+"px, "+ty+"px) rotate("+rot+"deg)";
-            c.classList.add('floating');
+            c.style.transition = "transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s";
+            
+            // 0.3秒間隔で飛ばす
+            (function(el, targetTx, targetTy, targetRot, delay) {
+                setTimeout(() => {
+                    el.classList.add('is-visible');
+                    el.style.transform = "translate("+targetTx+"px, "+targetTy+"px) rotate("+targetRot+"deg)";
+                }, delay);
+            })(c, tx, ty, rot, i * 350);
+        }
+        await wait(2200);
+
+        // フワフワ & 反転
+        cardElements.forEach((c, i) => {
+            setTimeout(() => { 
+                c.classList.remove('is-back'); 
+                c.classList.add('floating');
+            }, i * 150);
         });
         await wait(1000);
 
-        // 表向きに
-        cardElements.forEach((c, i) => {
-            setTimeout(() => { c.classList.remove('is-back'); }, i * 150);
-        });
-        await wait(2000);
-
-        // --- 3. カウントダウン（割り込みセリフ） ---
+        // --- 3. カウントダウン ---
         timer.style.opacity = 1;
         for (var i = 8; i >= 0; i--) {
             timer.innerText = i;
@@ -183,7 +185,7 @@
         }
         timer.style.opacity = 0;
 
-        // --- 4. 集合と【中抜き】シャッフル ---
+        // --- 4. 集合と【不動アンカー】シャッフル ---
         cardElements.forEach(c => {
             c.className = 'card is-back is-visible';
             c.style.animation = "none";
@@ -193,36 +195,38 @@
         });
         await wait(1500);
 
-        // 【アンカー・シャッフル】
-        // 物理的に一番上のカード(zIndex 4)を特定して動かさない。
+        // 【アンカー完全隔離】zIndex 4 を名指しで固定
         var sortedDeck = [...cardElements].sort((a,b) => a.style.zIndex - b.style.zIndex);
-        var anchorCard = sortedDeck[4]; // これが「重石」
-        
-        // 抜く対象を明示的に指定（0, 1, 3 番目。4番目はanchorなので除外）
+        var anchorCard = sortedDeck[4]; 
+        anchorCard.style.zIndex = 1000;
+
+        // 抜く対象（anchorCard は絶対に含めない）
         var pullTargets = [sortedDeck[3], sortedDeck[0], sortedDeck[1]];
-        var pullPaths = [320, -320, 260];
+        var pullPaths = [340, -340, 270]; 
         var topZ = 100;
         
         for (var j=0; j<pullTargets.length; j++) {
             var target = pullTargets[j];
-            target.style.zIndex = topZ++;
+            // アンカーの下を通るよう zIndex を一時的に低くし、スライド後にアンカーより一つ下(999)に上げる
+            target.style.zIndex = 500;
             target.style.transition = "transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1)";
-            target.style.transform = "translate("+pullPaths[j]+"px, -85px) rotate(20deg)";
-            await wait(680);
+            target.style.transform = "translate("+pullPaths[j]+"px, -85px) rotate(22deg)";
+            await wait(700);
             target.style.transform = "translate(0, 0) rotate(0deg)";
-            await wait(480);
+            await wait(450);
+            target.style.zIndex = 999;
         }
-        await wait(1200);
+        await wait(1000);
 
         // --- 5. 消失演出 ---
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
-        // 現在の重なり順で再ソートして展開
-        var finalDeck = [...cardElements].sort((a,b) => a.style.zIndex - b.style.zIndex);
-        finalDeck.forEach((c, i) => {
-            var diff = i - (finalDeck.length - 1) / 2;
+        // アンカー含め再整列
+        cardElements.forEach((c, i) => {
+            var diff = i - (cardElements.length - 1) / 2;
             var tx = diff * 145;
             var ty = Math.abs(diff) * Math.abs(diff) * 15;
             var rot = diff * 10;
+            c.style.zIndex = i; 
             c.style.setProperty('--base-tx', tx + "px");
             c.style.setProperty('--base-ty', ty + "px");
             c.style.setProperty('--base-rot', rot + "deg");
@@ -230,7 +234,7 @@
         });
         await wait(1800);
 
-        var vCard = finalDeck[2]; // 3枚目のカードを消す
+        var vCard = cardElements[2]; 
         vCard.className = 'card is-back is-visible';
         vCard.style.zIndex = 500;
         vCard.querySelector('.card-back').classList.add('glow');
@@ -238,14 +242,14 @@
 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         vCard.style.transition = "transform 4s ease-in-out, opacity 2.5s, filter 2s";
-        vCard.style.transform = "translate("+vTx+", -195px) rotate(3deg)";
+        vCard.style.transform = "translate("+vTx+", -185px) rotate(3deg)"; 
         await wait(3500);
         vCard.style.opacity = '0'; vCard.style.filter = 'blur(30px)';
         await wait(1000);
 
-        // --- 6. 開示とフィナーレ ---
+        // --- 6. 完結 ---
         pushMsg("あなたのカードだけが、消えました。");
-        var remaining = finalDeck.filter(c => c !== vCard);
+        var remaining = cardElements.filter(c => c !== vCard);
         remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = "url('"+currentB[i]+"')");
         await wait(1200);
 
