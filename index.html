@@ -54,7 +54,7 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
 
-        /* 上昇アニメーション（停止状態を保持するため forwards を指定） */
+        /* 上昇アニメーション */
         @keyframes cinematicRise {
             0% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 10px var(--accent)) brightness(1.1); }
             30% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 30px var(--accent)) brightness(2.0); }
@@ -62,7 +62,7 @@
         }
         .miracle-rise { animation: cinematicRise 3.8s forwards cubic-bezier(0.33, 0, 0.67, 1) !important; }
 
-        /* 消失バースト：頂上（-240px）から開始 */
+        /* 消失バースト */
         @keyframes cinematicVanish {
             0% { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.0); opacity: 1; }
             30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(8deg) scale(1.2); opacity: 1; }
@@ -74,7 +74,8 @@
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
         .btn { background: var(--accent); border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
 
-        #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: var(--accent); z-index: 10001; opacity: 0.3; pointer-events: none; }
+        /* Build情報の透明化 */
+        #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: var(--accent); z-index: 10001; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -82,7 +83,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 15800 | Rise-Stop-Vanish Protocol</div>
+<div id="status-info">Build: 15900 | Release Candidate</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -109,11 +110,12 @@
 
 <script>
     /**
-     * MASTER TRICK MESSAGE:
+     * 【マジシャンからの隠しメッセージ】
      * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
      * 私達プロマジシャンもトリックを愛し、大切にしています。
      * 最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。だから、何を選ばれても消えるのです。
-     * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね。
+     * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
+     * このトリックを愛し大切にしてくださいね。
      * 39aco
      */
 
@@ -139,9 +141,11 @@
         sub.style.opacity = '1';
     }
 
+    // シェアタイトルの修正
     function sharePage() {
         var url = window.location.href.split('?')[0];
-        if (navigator.share) { navigator.share({ title: 'Gran GIOIA Ginza', url: url }); }
+        var shareTitle = 'マジックレストランGran GIOIA Ginza -Card Magic Experience-';
+        if (navigator.share) { navigator.share({ title: shareTitle, url: url }); }
         else { alert("リンクをコピーしました：\n" + url); }
     }
 
@@ -201,7 +205,7 @@
         var span = (winW < 600) ? winW * 0.15 : 135; 
         var targets = [{ tx: -2 * span, ty: 30, rot: -24 },{ tx: -1 * span, ty: 15, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 15, rot: 12 },{ tx: 2 * span, ty: 30, rot: 24 }];
 
-        // --- 左から右へのリボンスプレッド ---
+        // リボンスプレッド
         cards.forEach(c => {
             c.style.transform = `translate(${targets[0].tx}px, ${targets[0].ty}px) rotate(${targets[0].rot}deg)`;
         });
@@ -236,9 +240,10 @@
         for (var i = 8; i >= 0; i--) {
             timerDisplay.innerText = i;
             if (i === 6) {
+                // セリフと英文のブラッシュアップ（mindへ統一）
                 if (isMobile) {
                     dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
-                    updateSubtitle("Now, whisper its name three times in your head.");
+                    updateSubtitle("Now, whisper its name three times in your mind.");
                 } else {
                     dynamicText.innerHTML = "誰にも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
                     updateSubtitle("Now, whisper its name three times in your mind.");
@@ -297,7 +302,6 @@
 
         // --- 究極の「上昇 ➡ 停止 ➡ 消失」シークエンス ---
         var vCard = finalDeck[2]; 
-        
         vCard.classList.remove('floating'); 
         void vCard.offsetWidth; 
         
@@ -306,7 +310,6 @@
         await wait(3800); 
 
         // 2. 頂上で停止 (1.0s)
-        // forwards により位置は固定されています
         await wait(1000); 
 
         // 3. 消失バースト
