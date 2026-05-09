@@ -41,30 +41,35 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.5px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
+        /* 通常のフワフワ */
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 15px)) rotate(calc(var(--base-rot) + 1.2deg)); } 
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
-        
-        /* 消失バースト */
-        @keyframes ultimateVanish {
-            0% { filter: drop-shadow(0 0 30px var(--accent)) brightness(3); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.05); opacity: 1; }
-            30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.3); opacity: 1; }
-            100% { filter: drop-shadow(0 0 250px var(--accent)) brightness(80) blur(120px); transform: translate(var(--base-tx), -420px) rotate(15deg) scale(2.8); opacity: 0; }
+
+        /* 【究極修正】神秘的な上昇アニメーション */
+        @keyframes cinematicRise {
+            0% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 15px var(--accent)) brightness(1.2); }
+            30% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 30px var(--accent)) brightness(2.0); } /* 溜め：その場で光る */
+            100% { transform: translate(var(--base-tx), -240px) rotate(5deg); filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); } /* 離陸：ゆっくり上昇 */
         }
-        .vanish-action { animation: ultimateVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
-        
-        /* 光の演出 */
-        .glow-soft { filter: drop-shadow(0 0 12px var(--accent)) brightness(1.2) !important; transition: filter 2.0s ease-in-out !important; }
-        .glow-strong { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5) !important; transition: filter 4s cubic-bezier(0.2, 0, 0.3, 1) !important; }
+        .miracle-rise { animation: cinematicRise 7.5s forwards cubic-bezier(0.35, 0, 0.65, 1) !important; }
+
+        /* 消失バースト */
+        @keyframes cinematicVanish {
+            0% { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.0); opacity: 1; }
+            30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(10px); transform: translate(var(--base-tx), -270px) rotate(8deg) scale(1.2); opacity: 1; }
+            100% { filter: drop-shadow(0 0 250px var(--accent)) brightness(80) blur(120px); transform: translate(var(--base-tx), -450px) rotate(15deg) scale(3.0); opacity: 0; }
+        }
+        .vanish-action { animation: cinematicVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -78,7 +83,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 15500 | Zero-Pop Miracle Rise</div>
+<div id="status-info">Build: 15600 | Cinematic Miracle Edition</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -111,7 +116,6 @@
      * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
      * だから、何を選ばれても消えるのです。
      * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
-     * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね。
      * 39aco
      */
 
@@ -293,41 +297,20 @@
         });
         await wait(1800);
 
-        // --- 劇的浮遊シークエンス (Build 15500 改良) ---
+        // --- シネマティック浮遊 ➡ 消失シークエンス ---
         var vCard = finalDeck[2]; 
-        var vTx = vCard.style.getPropertyValue('--base-tx');
-        var vTy = vCard.style.getPropertyValue('--base-ty');
-        var vRot = vCard.style.getPropertyValue('--base-rot');
         
-        // 1. 控えめな発光
-        vCard.classList.add('glow-soft'); 
-        await wait(1400); 
-
-        // ★パッという跳ねを物理排除する「二重フレーム・ロック」
-        vCard.classList.remove('floating'); // フワフワを完全に止める
-        vCard.style.transition = "none";    // 全ての transition を一時無効
-        vCard.style.transform = `translate(${vTx}, ${vTy}) rotate(${vRot})`; // 厳密な現在地に固定
+        // ★決定的修正：上昇命令ではなく「アニメーション」を上書きする
+        vCard.classList.remove('floating'); // 通常のフワフワを解除
+        void vCard.offsetWidth; // 描画強制リセット
         
-        // ブラウザに「今、止まっている」と2段階で確約させる
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                // 2. 超低速で離陸開始 (最初の1秒はほぼ静止)
-                vCard.style.transition = "transform 7s cubic-bezier(0.2, 0, 0.3, 1), filter 5s ease-in-out"; 
-                vCard.style.transform = `translate(${vTx}, -240px) rotate(5deg)`;
-                
-                // 離陸して安定してから光を強くする
-                setTimeout(() => {
-                    vCard.classList.remove('glow-soft');
-                    vCard.classList.add('glow-strong');
-                }, 1000);
-            });
-        });
+        // 1. その場で光り、じわじわと浮き上がる（cinematicRise適用）
+        vCard.classList.add('miracle-rise'); 
+        
+        await wait(6800); // 上昇アニメーションの佳境まで待機
 
-        await wait(6200); 
-
-        // 3. 頂上消失
-        vCard.style.transition = "none"; 
-        vCard.classList.remove('glow-strong');
+        // 2. 頂上でバースト消失
+        vCard.classList.remove('miracle-rise');
         void vCard.offsetWidth;
         vCard.classList.add('vanish-action');
 
