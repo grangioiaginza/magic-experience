@@ -41,7 +41,7 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.8s; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -54,15 +54,15 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 劇的消失アニメーション：光がMAXになって空気へ溶ける */
+        /* 消失アニメーション：光がMAXになって空気へ溶ける */
         @keyframes ultimateVanish {
-            0% { filter: drop-shadow(0 0 20px var(--accent)) brightness(2); transform: translate(var(--base-tx), -220px) rotate(5deg) scale(1); opacity: 1; }
+            0% { filter: drop-shadow(0 0 20px var(--accent)) brightness(2.5); transform: translate(var(--base-tx), -220px) rotate(5deg) scale(1); opacity: 1; }
             40% { filter: drop-shadow(0 0 80px #fff) brightness(20) blur(10px); transform: translate(var(--base-tx), -260px) rotate(8deg) scale(1.1); opacity: 1; }
             100% { filter: drop-shadow(0 0 150px var(--accent)) brightness(40) blur(60px); transform: translate(var(--base-tx), -340px) rotate(12deg) scale(1.6); opacity: 0; }
         }
         .vanish-action { animation: ultimateVanish 1.6s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
-        .glow { filter: drop-shadow(0 0 40px var(--accent)) brightness(2.5) !important; transition: filter 1.5s ease-out !important; }
+        .glow { filter: drop-shadow(0 0 40px var(--accent)) brightness(2.8) !important; transition: filter 1.5s ease-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -76,7 +76,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 14100 | Ribbon Spread & Vanish Fix</div>
+<div id="status-info">Build: 14200 | Ultimate Ribbon & Rise</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -186,17 +186,18 @@
         var span = (winW < 600) ? winW * 0.15 : 135; 
         var targets = [{ tx: -2 * span, ty: 30, rot: -24 },{ tx: -1 * span, ty: 15, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 15, rot: 12 },{ tx: 2 * span, ty: 30, rot: 24 }];
 
-        // リボンスプレッドの復活
+        // --- Build 13600のリボンスプレッド復旧 ---
         for (let i = 0; i < cards.length; i++) {
             let t = targets[i];
-            cards[i].style.transition = "transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)";
+            cards[i].style.transition = "transform 0.8s cubic-bezier(0.19, 1, 0.22, 1)";
             cards[i].style.transform = `translate(${t.tx}px, ${t.ty}px) rotate(${t.rot}deg)`;
             cards[i].style.setProperty('--base-tx', t.tx + "px");
             cards[i].style.setProperty('--base-ty', t.ty + "px");
             cards[i].style.setProperty('--base-rot', t.rot + "deg");
-            await wait(150); // スプレッドのリズム
+            // 微妙なラグでリボン感を演出
+            setTimeout(() => {}, i * 50);
         }
-        await wait(500);
+        await wait(1200);
 
         // 表向きにしてフワフワ
         for (let i = 0; i < cards.length; i++) {
@@ -232,21 +233,20 @@
         });
         await wait(1500);
 
-        // シャッフル挙動修正：左右に取り出し一番上に重ねる
+        // シャッフル：左右に取り出し一番上に重ねる
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         updateSubtitle("Now Shuffling...");
 
         for (var j=0; j<shuffleSteps.length; j++) {
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
-            let pull = deck[deck.length - 2]; // 上から2枚目を引き抜く
+            let pull = deck[deck.length - 2]; 
             let step = shuffleSteps[j];
             
             pull.style.transition = "transform 0.46s cubic-bezier(0.2, 0.8, 0.2, 1)"; 
             pull.style.transform = `translate(${step.x}px, -60px) rotate(${step.r}deg)`;
             await wait(500); 
             
-            // 一番上に重ねる
             let maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
             pull.style.transform = "translate(0, 0) rotate(0deg)";
@@ -271,20 +271,20 @@
         });
         await wait(1800);
 
-        // 真ん中のカードが光る ➡ ゆっくり上昇 ➡ MAXの光で消失
+        // --- Build 13600の発光 ➡ 上昇シーケンス復旧 ---
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // 1. 光り輝く
+        // 1. 光り輝く（静止したまま）
         vCard.classList.add('glow'); 
-        await wait(1000); 
+        await wait(1200); 
 
-        // 2. ゆっくりと上昇する
-        vCard.style.transition = "transform 3.0s linear";
+        // 2. ゆっくりと上昇する（linearで滑らかに）
+        vCard.style.transition = "transform 3.2s linear";
         vCard.style.transform = `translate(${vTx}, -220px) rotate(5deg)`;
-        await wait(3000);
+        await wait(3200);
 
-        // 3. 頂上でMAXの輝きとともに消失
+        // 3. 頂上でMAXの輝きとともに消失（最新バースト）
         vCard.style.transition = "none"; 
         vCard.classList.remove('floating', 'glow');
         void vCard.offsetWidth;
