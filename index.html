@@ -55,9 +55,9 @@
         
         @keyframes luminousPremonition {
             0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            100% { filter: drop-shadow(0 0 30px #f1d592) brightness(1.7); }
+            100% { filter: drop-shadow(0 0 40px #f1d592) brightness(2.0); }
         }
-        .glow { animation: luminousPremonition 1.0s forwards ease-out !important; }
+        .glow { animation: luminousPremonition 1.2s forwards ease-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -71,7 +71,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 13400 | Master Overlap Fix</div>
+<div id="status-info">Build: 13500 | Luminous Dispersion</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -252,7 +252,7 @@
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
             let pull = deck[3]; 
             let step = shuffleSteps[j];
-            dynamicText.innerText = "Now Shuffling...";
+            dynamicText.innerText = "Now Shuffling..."; 
             pull.style.transition = "transform 0.46s cubic-bezier(0.2, 0.8, 0.2, 1)"; 
             pull.style.transform = `translate(${step.x}px, -60px) rotate(${step.r}deg)`;
             await wait(500); 
@@ -264,7 +264,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（光増幅 ➡ ジュワッと溶解） ---
+        // --- 4. 消失演出（極限発光 ➡ 霧散） ---
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -288,22 +288,27 @@
         vCard.classList.add('glow'); 
         await wait(600); 
 
-        // 2. 実体を持って上昇 (2.8s)
-        vCard.style.transition = "transform 2.8s cubic-bezier(0.4, 0, 0.2, 1), filter 2.8s ease-in";
+        // 2. 実体を持って上昇 (2.6s)
+        vCard.style.transition = "transform 2.6s cubic-bezier(0.4, 0, 0.2, 1), filter 2.6s ease-in";
         vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
-        await wait(2800); 
+        await wait(2600); 
 
-        // ★ 3. 頂上での劇的消失（輝き増幅 ＆ ジュワッと霧散）
-        // 1.5秒かけて、光をMAXに引き上げながら透明にする
-        vCard.style.transition = "filter 1.5s ease-out, opacity 1.5s ease-out";
-        vCard.style.filter = 'drop-shadow(0 0 100px #f1d592) drop-shadow(0 0 200px #f1d592) brightness(12) blur(90px)';
+        // ★ 3. 劇的消失（実体を光に変換 ➡ 霧散）
+        // 最初に光だけを飽和させて絵柄を飛ばす
+        vCard.style.transition = "filter 0.5s ease-out";
+        vCard.style.filter = 'drop-shadow(0 0 100px #f1d592) brightness(20) blur(40px)';
+        await wait(400);
+
+        // 完全に光の粒子として溶かす
+        vCard.style.transition = "filter 1.2s ease-in, opacity 1.0s ease-in";
         vCard.style.opacity = '0';
+        vCard.style.filter = 'drop-shadow(0 0 150px #f1d592) brightness(30) blur(100px)';
 
-        // ★ 消えきる直前（700ms後）にセリフを開始する
-        await wait(700);
+        // セリフのオーバーラップ開始
+        await wait(250);
         pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
         
-        await wait(800); // 残りの消失時間を待機
+        await wait(1000); 
 
         // --- 5. フィナーレ ---
         var remaining = cards.filter(c => c !== vCard).sort((a, b) => {
