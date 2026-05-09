@@ -57,13 +57,13 @@
         /* 消失バースト：頂上でMAX輝度になり、一気に霧散する */
         @keyframes ultimateVanish {
             0% { filter: drop-shadow(0 0 30px var(--accent)) brightness(3); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.05); opacity: 1; }
-            30% { filter: drop-shadow(0 0 100px #fff) brightness(25) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.2); opacity: 1; }
-            100% { filter: drop-shadow(0 0 200px var(--accent)) brightness(60) blur(80px); transform: translate(var(--base-tx), -360px) rotate(12deg) scale(2.0); opacity: 0; }
+            30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.25); opacity: 1; }
+            100% { filter: drop-shadow(0 0 250px var(--accent)) brightness(60) blur(100px); transform: translate(var(--base-tx), -380px) rotate(15deg) scale(2.2); opacity: 0; }
         }
-        .vanish-action { animation: ultimateVanish 1.7s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        .vanish-action { animation: ultimateVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
-        /* 発光：Build 13600 の神秘的な輝きを復元 */
-        .glow { filter: drop-shadow(0 0 45px var(--accent)) brightness(2.8) !important; transition: filter 2.5s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        /* 発光エフェクト */
+        .glow { filter: drop-shadow(0 0 50px var(--accent)) brightness(3.0) !important; transition: filter 2.2s cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -77,7 +77,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 14700 | 39aco Master Sequence</div>
+<div id="status-info">Build: 14800 | Absolute Float Fix</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -198,15 +198,12 @@
         var targets = [{ tx: -2 * span, ty: 30, rot: -24 },{ tx: -1 * span, ty: 15, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 15, rot: 12 },{ tx: 2 * span, ty: 30, rot: 24 }];
 
         // --- 左から右へのリボンスプレッド ---
-        // 1. まずスタック全体を左端へ
         cards.forEach(c => {
             c.style.transform = `translate(${targets[0].tx}px, ${targets[0].ty}px) rotate(${targets[0].rot}deg)`;
         });
         await wait(600);
 
-        // 2. スタックをスライドさせながらボトム（最背面）を置いていく
         for (let i = 0; i < 4; i++) {
-            // cards[i]がボトム。cards[i+1]以上が移動する束。
             for (let j = i + 1; j < 5; j++) {
                 let nextTarget = targets[i + 1];
                 cards[j].style.transition = "transform 0.45s cubic-bezier(0.2, 0, 0.2, 1)";
@@ -215,7 +212,6 @@
             await wait(280);
         }
         
-        // パラメータを確定
         cards.forEach((c, i) => {
             let t = targets[i];
             c.style.setProperty('--base-tx', t.tx + "px");
@@ -296,23 +292,27 @@
         });
         await wait(1800);
 
-        // --- 神秘的浮遊 ➡ 閃光消失（修正ポイント） ---
+        // --- 神秘的浮遊 ➡ 閃光消失 (修正ポイント) ---
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // 1. 静かに、力強く光を宿す
+        // 1. 静かに光を宿す
         vCard.classList.add('glow'); 
         await wait(1200); 
 
-        // 2. ゆっくりと上昇（Build 13600の情緒的な浮遊）
-        // linearから微細なイージングに変更し、動き出しを極めて滑らかに
-        vCard.style.transition = "transform 5.5s cubic-bezier(0.4, 0, 0.2, 1)"; 
+        // ★重要：上昇命令の前にフワフワアニメーションを解除
+        // これをしないと、CSSアニメーションがtransformを上書きしてしまい浮き上がりません。
+        vCard.classList.remove('floating');
+        void vCard.offsetWidth; // リフロー強制
+
+        // 2. ゆっくりと上昇 (Build 13600のリズム)
+        vCard.style.transition = "transform 5.2s cubic-bezier(0.4, 0, 0.2, 1)"; 
         vCard.style.transform = `translate(${vTx}, -240px) rotate(5deg)`;
-        await wait(4500); 
+        await wait(4600); // 頂点近くまで上昇するのを待つ
 
         // 3. 頂上でMAXの輝きとともに消失
         vCard.style.transition = "none"; 
-        vCard.classList.remove('floating', 'glow');
+        vCard.classList.remove('glow');
         void vCard.offsetWidth;
         vCard.classList.add('vanish-action');
 
