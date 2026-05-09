@@ -6,10 +6,11 @@
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
         :root {
-            --card-w: 21vw;
+            /* 130%拡大設定 */
+            --card-w: 27vw;
             --card-h: calc(var(--card-w) * 1.5);
-            --max-card-w: 130px;
-            --max-card-h: 195px;
+            --max-card-w: 169px;
+            --max-card-h: 253px;
         }
         @media (min-width: 600px) {
             :root { --card-w: var(--max-card-w); --card-h: var(--max-card-h); }
@@ -19,7 +20,6 @@
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: 1; }
         #bg-image { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 2; opacity: 0; transition: opacity 2s; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 3; }
-        
         .container { position: relative; width: 100vw; height: 100vh; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 
         /* エントランス */
@@ -27,10 +27,10 @@
         .entrance-logo { font-size: 1.4rem; letter-spacing: 0.2em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; padding: 0 20px; line-height: 1.6; }
         .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
 
-        /* 英語字幕エリア */
+        /* 英語字幕 */
         #en-subtitle { position: fixed; bottom: 30px; width: 100%; text-align: center; font-size: 0.9rem; color: #fff; opacity: 0; transition: opacity 0.5s; z-index: 100; font-family: sans-serif; letter-spacing: 0.05em; text-shadow: 0 2px 4px #000; }
 
-        /* 日本語ナレーション */
+        /* ゲームUI */
         #game-ui { width: 100%; margin-top: 5vh; display: none; }
         #msg-container { height: 100px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .msg-line { position: absolute; width: 90%; display: flex; align-items: center; justify-content: center; transition: all 1s cubic-bezier(0.19, 1, 0.22, 1); opacity: 0; font-size: 1.1rem; letter-spacing: 0.1em; text-shadow: 0 0 25px #000; line-height: 1.4; }
@@ -41,8 +41,9 @@
         #timer { font-size: 5rem; font-weight: bold; color: #fff; opacity: 0; text-shadow: 0 0 50px #000; transition: opacity 0.5s; height: 100px; display: flex; align-items: center; }
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: #f1d592; text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
-        #card-table { height: 350px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s, filter 2.5s ease; }
+        /* カードテーブル：拡大に合わせて高さを確保 */
+        #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s, filter 2.5s ease-in-out; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -51,11 +52,11 @@
 
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
-            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 12px)) rotate(calc(var(--base-rot) + 1.2deg)); } 
+            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 15px)) rotate(calc(var(--base-rot) + 1.2deg)); } 
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 修正：ジワッと光らせるためのアニメーション */
+        /* ジワッと光るアニメーション */
         @keyframes luminousFade {
             0% { filter: drop-shadow(0 0 0px transparent); }
             100% { filter: drop-shadow(0 0 15px #f1d592) drop-shadow(0 0 35px #f1d592); }
@@ -74,7 +75,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 11500 | Global Cinema</div>
+<div id="status-info">Build: 11600 | Giant Fan Spec</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -117,8 +118,7 @@
     function updateSubtitle(en) {
         const sub = document.getElementById('en-subtitle');
         if(!en) { sub.style.opacity = '0'; return; }
-        sub.innerText = en;
-        sub.style.opacity = '0.7';
+        sub.innerText = en; sub.style.opacity = '0.7';
     }
 
     function sharePage() {
@@ -163,7 +163,7 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "I would like to show you a 'miracle' now.");
         await wait(2400);
 
-        // --- 1. スタック出現 ➡ リボンスプレッド ---
+        // --- 1. 山札生成 ---
         var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
         var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
         var cards = [];
@@ -182,8 +182,15 @@
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Pick one card in your mind from these five.");
         
         var winW = window.innerWidth;
-        var span = (winW < 600) ? winW * 0.16 : 160; 
-        var targets = [{ tx: -2 * span, ty: 24, rot: -24 },{ tx: -1 * span, ty: 12, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 12, rot: 12 },{ tx: 2 * span, ty: 24, rot: 24 }];
+        // ★修正：拡大に合わせてスプレッド幅(span)を再計算
+        var span = (winW < 600) ? winW * 0.16 : 135; 
+        var targets = [
+            { tx: -2 * span, ty: 30, rot: -24 },
+            { tx: -1 * span, ty: 15, rot: -12 },
+            { tx: 0, ty: 0, rot: 0 },
+            { tx: 1 * span, ty: 15, rot: 12 },
+            { tx: 2 * span, ty: 30, rot: 24 }
+        ];
 
         cards.forEach(c => {
             c.style.transition = "transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)";
@@ -241,7 +248,7 @@
         await wait(1500);
 
         // --- 3. 130% 高速シャッフル ---
-        var moveX = (winW < 600) ? winW * 0.28 : 160;
+        var moveX = (winW < 600) ? winW * 0.32 : 180;
         var shuffleSteps = [{x:moveX, r:12},{x:-moveX, r:-12},{x:moveX, r:10}];
         dynamicText.style.opacity = "0.7"; 
         updateSubtitle("Now Shuffling...");
@@ -250,13 +257,13 @@
             let pull = deck[3]; 
             let step = shuffleSteps[j];
             dynamicText.innerText = "Now Shuffling...";
-            pull.style.transition = "transform 0.46s cubic-bezier(0.2, 0.8, 0.2, 1)"; // 130% speed
-            pull.style.transform = `translate(${step.x}px, -50px) rotate(${step.r}deg)`;
-            await wait(500); // 130% speed
+            pull.style.transition = "transform 0.46s cubic-bezier(0.2, 0.8, 0.2, 1)"; 
+            pull.style.transform = `translate(${step.x}px, -60px) rotate(${step.r}deg)`;
+            await wait(500); 
             let maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
             pull.style.transform = "translate(0, 0) rotate(0deg)";
-            await wait(350); // 130% speed
+            await wait(350); 
         }
         dynamicText.style.opacity = "0";
         await wait(1000);
@@ -264,11 +271,11 @@
         // --- 4. 消失演出 ---
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
-        let fSpan = (winW < 600) ? winW * 0.16 : 145;
+        let fSpan = (winW < 600) ? winW * 0.16 : 140;
         finalDeck.forEach((c, i) => {
             let diff = i - 2;
             let tx = diff * fSpan;
-            let ty = Math.abs(diff) * 10;
+            let ty = Math.abs(diff) * 12;
             let rot = diff * 10;
             c.style.zIndex = (i + 1) * 10; 
             c.style.setProperty('--base-tx', tx + "px");
@@ -278,14 +285,13 @@
         });
         await wait(1800);
 
-        // ★修正：ジワッと光る（Animationによる完全制御）
         var vCard = finalDeck[2]; 
         vCard.classList.add('glow'); 
         await wait(3000); 
 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         vCard.style.transition = "transform 4s ease-in-out, opacity 2.5s, filter 2s";
-        vCard.style.transform = `translate(${vTx}, -180px) rotate(3deg)`; 
+        vCard.style.transform = `translate(${vTx}, -200px) rotate(3deg)`; 
         await wait(3500);
         vCard.style.opacity = '0'; vCard.style.filter = 'blur(30px) brightness(2)';
         await wait(1000);
@@ -299,7 +305,6 @@
         remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = `url('${currentB[i]}')`);
         await wait(1200);
 
-        // ★修正：最後の一枚に溜め(1.8倍)
         for (var k = 0; k < remaining.length; k++) {
             let flipDelay = (k === remaining.length - 1) ? 900 : 500;
             await wait(flipDelay);
@@ -320,7 +325,10 @@
         updateSubtitle("");
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
-        setTimeout(() => { reserveUI.style.opacity = 1; document.getElementById('status-info').style.opacity = 0; }, 100);
+        setTimeout(() => { 
+            reserveUI.style.opacity = 1; 
+            document.getElementById('status-info').style.opacity = 0; 
+        }, 100);
     }
 </script>
 </body>
