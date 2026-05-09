@@ -41,7 +41,7 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -54,7 +54,7 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 消失バースト */
+        /* 消失バースト：究極の閃光 */
         @keyframes ultimateVanish {
             0% { filter: drop-shadow(0 0 30px var(--accent)) brightness(3); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.05); opacity: 1; }
             30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.3); opacity: 1; }
@@ -62,10 +62,9 @@
         }
         .vanish-action { animation: ultimateVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
-        /* 予兆の光（控えめ） */
+        /* 光の強弱 */
         .glow-soft { filter: drop-shadow(0 0 12px var(--accent)) brightness(1.2) !important; transition: filter 2.0s ease-in-out !important; }
-        /* 意志の光（強力・上昇中） */
-        .glow-strong { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5) !important; transition: filter 3.5s ease-out !important; }
+        .glow-strong { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5) !important; transition: filter 3.5s cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -79,7 +78,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 15300 | Device-Aware Miracle</div>
+<div id="status-info">Build: 15400 | Eternal Rise Final</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -106,19 +105,15 @@
 
 <script>
     /**
-     * 【マジシャンからの隠しメッセージ】
-     * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
-     * 私達プロマジシャンもトリックを愛し、大切にしています。
-     * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
-     * なので、最初の5枚のどれを選ばれても消えてしまうんです。
+     * MASTER TRICK MESSAGE:
+     * ここまで見るほどこのトリックが気に入って頂き有難う御座います。私達プロマジシャンもトリックを愛し、大切にしています。
+     * 最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。だから、何を選んでも消えるのです。
      * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
-     * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね。
+     * このトリックを愛し大切にしてくださいね。
      * 39aco
      */
 
     var isStarted = false;
-
-    // デバイス判定
     var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     const PATTERNS = [
@@ -237,7 +232,7 @@
         for (var i = 8; i >= 0; i--) {
             timerDisplay.innerText = i;
             if (i === 6) {
-                // デバイス別セリフ切り替え
+                // デバイス自動判別セリフ
                 if (isMobile) {
                     dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
                     updateSubtitle("Now, whisper its name three times in your head.");
@@ -297,7 +292,7 @@
         });
         await wait(1800);
 
-        // --- 究極の「跳ねない」浮遊 ➡ 閃光消失 (Build 13600のリズム再現版) ---
+        // --- 究極の神秘的浮遊シークエンス ---
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
@@ -305,24 +300,23 @@
         vCard.classList.add('glow-soft'); 
         await wait(1400); 
 
-        // ★パッという跳ねを物理的に消すための処理（Build 13600の安定性）
+        // ★「パッ」を物理排除するための「着陸と静止」
         vCard.classList.remove('floating'); // フワフワ解除
-        vCard.style.transition = "none";    // 一旦全transitionをオフに
-        void vCard.offsetWidth;             // ブラウザの描画をこの瞬間に固定
+        vCard.style.transition = "transform 0.8s ease-in-out"; // 一度優しく着陸させる
+        void vCard.offsetWidth; // 強制認識
+        await wait(850); // カードが「止まった」瞬間を作る
 
-        // 2. 超低速スタートの上昇（テイクオフ）
-        // 13600のように、一度「静止」を意識させてからゆっくり動かします
-        await wait(50);
+        // 2. 超低速スタートの上昇 (Build 13600のリズム)
         vCard.style.transition = "transform 6.5s cubic-bezier(0.4, 0, 0.2, 1), filter 4.5s ease-out"; 
         vCard.style.transform = `translate(${vTx}, -240px) rotate(5deg)`;
         
-        // 離陸して安定したところで光を強くする
+        // 浮遊中に光を意志の強さへ
         setTimeout(() => {
             vCard.classList.remove('glow-soft');
             vCard.classList.add('glow-strong');
-        }, 1000);
+        }, 1200);
 
-        await wait(5500); // 頂点直前まで
+        await wait(5500); 
 
         // 3. 頂上消失（バースト）
         vCard.style.transition = "none"; 
