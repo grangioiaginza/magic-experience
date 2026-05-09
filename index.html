@@ -6,7 +6,6 @@
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
         :root {
-            /* 修正：左右の余裕を出すためサイズを微調整 */
             --card-w: 21vw;
             --card-h: calc(var(--card-w) * 1.5);
             --max-card-w: 130px;
@@ -36,7 +35,7 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: #f1d592; text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 350px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: filter 2.5s; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s, filter 3s ease-in-out; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -49,7 +48,7 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* WebP透明部分追従グロウ */
+        /* 修正：ジワッと光る形状追従グロウ */
         .glow { filter: drop-shadow(0 0 15px #f1d592) drop-shadow(0 0 35px #f1d592) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
@@ -66,7 +65,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 11200 | Precision Safe</div>
+<div id="status-info">Build: 11300 | Luminous Evolution</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -99,7 +98,7 @@
         { A: ['./6H.webp', './5D.webp', './6C.webp', './4S.webp', './5C.webp'], B: ['./6D.webp', './5H.webp', './6S.webp', './4C.webp'] }
     ];
 
-    function getVisitPattern() {
+    function getPattern() {
         let count = parseInt(localStorage.getItem('gioia_magic_cycles') || '0');
         localStorage.setItem('gioia_magic_cycles', (count + 1).toString());
         return PATTERNS[count % PATTERNS.length];
@@ -116,7 +115,7 @@
         if(isStarted) return;
         isStarted = true;
 
-        var pattern = getVisitPattern(); 
+        var pattern = getPattern(); 
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
         var dynamicText = document.getElementById('dynamic-text');
@@ -146,7 +145,7 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await wait(2400);
 
-        // --- 1. スタック生成 ---
+        // --- 1. 山札生成 ---
         var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
         var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
         var cards = [];
@@ -164,7 +163,6 @@
 
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
         
-        // ★修正：スプレッド幅（span）を凝縮し、画面端の安全を確保
         var winW = window.innerWidth;
         var span = (winW < 600) ? winW * 0.16 : 160; 
         var targets = [
@@ -175,7 +173,7 @@
             { tx: 2 * span, ty: 24, rot: 24 }
         ];
 
-        // リボンスプレッド（左端から右へ順次展開）
+        // リボンスプレッド（動く山札から底を落とす）
         cards.forEach(c => {
             c.style.transition = "transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)";
             c.style.transform = `translate(${targets[0].tx}px, ${targets[0].ty}px) rotate(${targets[0].rot}deg)`;
@@ -233,8 +231,9 @@
         await wait(1500);
 
         // --- 3. シャッフル ---
-        var moveX = (winW < 600) ? winW * 0.22 : 160;
-        var shuffleSteps = [{x:moveX, r:10},{x:-moveX, r:-10},{x:moveX, r:8}];
+        // ★修正：スマホでのスライド距離を大幅強化（抜けきるように）
+        var moveX = (winW < 600) ? winW * 0.35 : 180;
+        var shuffleSteps = [{x:moveX, r:12},{x:-moveX, r:-12},{x:moveX, r:10}];
         dynamicText.style.opacity = "0.3"; 
         for (var j=0; j<shuffleSteps.length; j++) {
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
@@ -242,7 +241,7 @@
             let step = shuffleSteps[j];
             dynamicText.innerText = "Now Shuffling...";
             pull.style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
-            pull.style.transform = `translate(${step.x}px, -40px) rotate(${step.r}deg)`;
+            pull.style.transform = `translate(${step.x}px, -50px) rotate(${step.r}deg)`;
             await wait(650);
             let maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
@@ -252,7 +251,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（zIndex維持） ---
+        // --- 4. 消失演出 ---
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 145;
@@ -269,9 +268,10 @@
         });
         await wait(1800);
 
+        // ★修正：ジワッと光る予兆
         var vCard = finalDeck[2]; 
         vCard.classList.add('glow'); 
-        await wait(1500);
+        await wait(2200); // 光が浸食するのを待つ
 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         vCard.style.transition = "transform 4s ease-in-out, opacity 2.5s, filter 2s";
@@ -282,11 +282,17 @@
 
         // --- 5. フィナーレ ---
         pushMsg("あなたのカードだけが、消えました。");
-        var remaining = cards.filter(c => c !== vCard);
+        // 残りの4枚を「左端から右端」の物理位置順にソートして並べる
+        var remaining = cards.filter(c => c !== vCard).sort((a, b) => {
+            return parseFloat(a.style.getPropertyValue('--base-tx')) - parseFloat(b.style.getPropertyValue('--base-tx'));
+        });
+        
         remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = `url('${currentB[i]}')`);
         await wait(1200);
+
+        // ★修正：左 ➡ 左中 ➡ 右中 ➡ 右 の順でめくる
         for (var k = 0; k < remaining.length; k++) {
-            await wait(k === 3 ? 750 : 450);
+            await wait(500);
             remaining[k].classList.remove('is-back');
             remaining[k].classList.add('floating');
         }
@@ -302,7 +308,10 @@
         table.style.opacity = '0';
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
-        setTimeout(() => { reserveUI.style.opacity = 1; document.getElementById('status-info').style.opacity = 0; }, 100);
+        setTimeout(() => { 
+            reserveUI.style.opacity = 1; 
+            document.getElementById('status-info').style.opacity = 0; 
+        }, 100);
     }
 </script>
 </body>
