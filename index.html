@@ -40,7 +40,7 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: #f1d592; text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s, filter 2.5s ease-in-out; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s, filter 2s ease-in-out; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -55,7 +55,7 @@
         
         @keyframes luminousPremonition {
             0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            100% { filter: drop-shadow(0 0 25px #f1d592) brightness(1.5); }
+            100% { filter: drop-shadow(0 0 30px #f1d592) brightness(1.6); }
         }
         .glow { animation: luminousPremonition 1.5s forwards ease-out !important; }
         
@@ -63,6 +63,7 @@
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
         .btn { background: #f1d592; border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
 
+        /* Build情報を非表示化 */
         #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: #f1d592; z-index: 10001; opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -71,7 +72,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 12900 | Luminous Peak</div>
+<div id="status-info">Build: 13000 | The Master Miracle</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -106,7 +107,7 @@
      * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね」
      */
     var isStarted = false;
-    
+
     const PATTERNS = [
         { A: ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'], B: ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'] },
         { A: ['./10S.webp', './9C.webp', './8D.webp', './9H.webp', './8C.webp'], B: ['./10C.webp', './9S.webp', './8H.webp', './9D.webp'] },
@@ -243,7 +244,7 @@
         });
         await wait(1500);
 
-        // --- 3. 130% 高速シャッフル（セリフ統一：Now Shuffling...） ---
+        // --- 3. 130% 高速シャッフル（Now Shuffling...統一） ---
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         dynamicText.style.opacity = "0.7"; 
@@ -264,8 +265,8 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（光 ➡ 上昇 ➡ 頂上でMAX ➡ 消失） ---
-        pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I have a feeling... this is your card.");
+        // --- 4. あの時の消失演出を完全再現 ---
+        pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
         finalDeck.forEach((c, i) => {
@@ -284,21 +285,19 @@
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // ★ 1. 光り始める（予兆）
+        // 1. 光が宿る
         vCard.classList.add('glow'); 
         await wait(1200); 
 
-        // ★ 2. 上昇（ここではまだ透明度を下げない！）
+        // 2. 実体を持って上昇
         vCard.style.transition = "transform 3.0s cubic-bezier(0.4, 0, 0.2, 1), filter 3.0s ease-in";
         vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
-        await wait(2500); // 頂上に近づくまで待機
+        await wait(3000); // 頂上に到達
 
-        // ★ 3. 頂上で光がMAX & ジュワッと消え始める
-        vCard.style.transition = "filter 1.2s ease-out, opacity 1.2s ease-out, transform 1.2s linear";
-        vCard.style.filter = 'drop-shadow(0 0 80px #f1d592) drop-shadow(0 0 150px #f1d592) brightness(5) blur(30px)';
+        // 3. 頂上での劇的消失（ジュワッと霧散）
+        vCard.style.transition = "filter 1.2s ease-out, opacity 1.2s ease-out";
+        vCard.style.filter = 'drop-shadow(0 0 80px #f1d592) drop-shadow(0 0 150px #f1d592) brightness(5) blur(60px)';
         vCard.style.opacity = '0';
-        vCard.style.transform = `translate(${vTx}, -300px) rotate(6deg)`;
-
         await wait(1200); 
 
         // --- 5. フィナーレ ---
