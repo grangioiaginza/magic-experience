@@ -41,7 +41,7 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -54,15 +54,15 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 消失バースト：頂上でMAX輝度になり、粒子化して消える */
+        /* 消失バースト：頂上でMAX輝度になり、一気に霧散する */
         @keyframes ultimateVanish {
-            0% { filter: drop-shadow(0 0 30px var(--accent)) brightness(2.8); transform: translate(var(--base-tx), -220px) rotate(5deg) scale(1); opacity: 1; }
-            30% { filter: drop-shadow(0 0 120px #fff) brightness(40) blur(10px); transform: translate(var(--base-tx), -260px) rotate(8deg) scale(1.3); opacity: 1; }
-            100% { filter: drop-shadow(0 0 250px var(--accent)) brightness(80) blur(80px); transform: translate(var(--base-tx), -360px) rotate(15deg) scale(2.0); opacity: 0; }
+            0% { filter: drop-shadow(0 0 30px var(--accent)) brightness(3); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.05); opacity: 1; }
+            30% { filter: drop-shadow(0 0 100px #fff) brightness(25) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.2); opacity: 1; }
+            100% { filter: drop-shadow(0 0 200px var(--accent)) brightness(60) blur(80px); transform: translate(var(--base-tx), -360px) rotate(12deg) scale(2.0); opacity: 0; }
         }
-        .vanish-action { animation: ultimateVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        .vanish-action { animation: ultimateVanish 1.7s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
-        /* 発光エフェクト */
+        /* 発光：Build 13600 の神秘的な輝きを復元 */
         .glow { filter: drop-shadow(0 0 45px var(--accent)) brightness(2.8) !important; transition: filter 2.5s cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
@@ -77,7 +77,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 14500 | 39aco Master Edition</div>
+<div id="status-info">Build: 14700 | 39aco Master Sequence</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -104,7 +104,7 @@
 
 <script>
     /**
-     * MASTER TRICK MESSAGE:
+     * 【マジシャンからの隠しメッセージ】
      * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
      * 私達プロマジシャンもトリックを愛し、大切にしています。
      * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
@@ -197,26 +197,27 @@
         var span = (winW < 600) ? winW * 0.15 : 135; 
         var targets = [{ tx: -2 * span, ty: 30, rot: -24 },{ tx: -1 * span, ty: 15, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 15, rot: 12 },{ tx: 2 * span, ty: 30, rot: 24 }];
 
-        // --- 究極のリボンスプレッド（定義に基づく実装） ---
-        // 1. 全カードがまず右端へ（スタック）
+        // --- 左から右へのリボンスプレッド ---
+        // 1. まずスタック全体を左端へ
         cards.forEach(c => {
-            c.style.transform = `translate(${targets[4].tx}px, ${targets[4].ty}px) rotate(${targets[4].rot}deg)`;
+            c.style.transform = `translate(${targets[0].tx}px, ${targets[0].ty}px) rotate(${targets[0].rot}deg)`;
         });
         await wait(600);
 
-        // 2. 順次移動：ボトム（cards[0]）から置いていく
+        // 2. スタックをスライドさせながらボトム（最背面）を置いていく
         for (let i = 0; i < 4; i++) {
-            // 現在のスタック（cards[i+1] 〜 cards[4]）を次の位置へ
+            // cards[i]がボトム。cards[i+1]以上が移動する束。
             for (let j = i + 1; j < 5; j++) {
-                let nextT = targets[4 - (i + 1)];
-                cards[j].style.transform = `translate(${nextT.tx}px, ${nextT.ty}px) rotate(${nextT.rot}deg)`;
+                let nextTarget = targets[i + 1];
+                cards[j].style.transition = "transform 0.45s cubic-bezier(0.2, 0, 0.2, 1)";
+                cards[j].style.transform = `translate(${nextTarget.tx}px, ${nextTarget.ty}px) rotate(${nextTarget.rot}deg)`;
             }
-            await wait(300);
+            await wait(280);
         }
         
-        // プロパティの設定（後続のアニメーション用）
+        // パラメータを確定
         cards.forEach((c, i) => {
-            let t = targets[i]; // 最終的な並び順
+            let t = targets[i];
             c.style.setProperty('--base-tx', t.tx + "px");
             c.style.setProperty('--base-ty', t.ty + "px");
             c.style.setProperty('--base-rot', t.rot + "deg");
@@ -278,7 +279,7 @@
         }
         await wait(800);
 
-        // 5枚スプレッド展開
+        // スプレッド展開
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -295,18 +296,19 @@
         });
         await wait(1800);
 
-        // --- 神秘的浮遊・閃光消失 ---
+        // --- 神秘的浮遊 ➡ 閃光消失（修正ポイント） ---
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
         // 1. 静かに、力強く光を宿す
         vCard.classList.add('glow'); 
-        await wait(1500); 
+        await wait(1200); 
 
-        // 2. 慣性を持った超低速スタートの上昇 (Build 13600のリズム)
-        vCard.style.transition = "transform 5.8s cubic-bezier(0.4, 0, 0.2, 1)"; 
-        vCard.style.transform = `translate(${vTx}, -220px) rotate(5deg)`;
-        await wait(4800); 
+        // 2. ゆっくりと上昇（Build 13600の情緒的な浮遊）
+        // linearから微細なイージングに変更し、動き出しを極めて滑らかに
+        vCard.style.transition = "transform 5.5s cubic-bezier(0.4, 0, 0.2, 1)"; 
+        vCard.style.transform = `translate(${vTx}, -240px) rotate(5deg)`;
+        await wait(4500); 
 
         // 3. 頂上でMAXの輝きとともに消失
         vCard.style.transition = "none"; 
