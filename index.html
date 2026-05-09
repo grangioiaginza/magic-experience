@@ -41,7 +41,7 @@
         #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -79,7 +79,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 15200 | Seamless Rise Pro</div>
+<div id="status-info">Build: 15300 | Device-Aware Miracle</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -117,6 +117,9 @@
      */
 
     var isStarted = false;
+
+    // デバイス判定
+    var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     const PATTERNS = [
         { A: ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'], B: ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'] },
@@ -234,9 +237,15 @@
         for (var i = 8; i >= 0; i--) {
             timerDisplay.innerText = i;
             if (i === 6) {
-                dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
+                // デバイス別セリフ切り替え
+                if (isMobile) {
+                    dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
+                    updateSubtitle("Now, whisper its name three times in your head.");
+                } else {
+                    dynamicText.innerHTML = "誰にも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
+                    updateSubtitle("Now, whisper its name three times in your mind.");
+                }
                 dynamicText.style.opacity = "1";
-                updateSubtitle("Now, whisper its name three times in your head.");
             }
             if (i === 0) break;
             await wait(1000);
@@ -288,38 +297,32 @@
         });
         await wait(1800);
 
-        // --- 究極の「跳ねない」浮遊 ➡ 閃光消失（Build 15200 プロトコル） ---
+        // --- 究極の「跳ねない」浮遊 ➡ 閃光消失 (Build 13600のリズム再現版) ---
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // 1. スプレッドの中で静かに予兆の光を宿す（控えめ）
+        // 1. 静かに予兆の光を宿す
         vCard.classList.add('glow-soft'); 
         await wait(1400); 
 
-        // ★パッという跳ねを物理的に消すための「実座標キャプチャ」
-        // 今、この瞬間のフワフワしている正確なmatrixを取得します
-        var computedStyle = window.getComputedStyle(vCard);
-        var currentMatrix = computedStyle.transform;
-        
-        vCard.classList.remove('floating'); // アニメーション解除
-        vCard.style.transition = "none";    // 一旦 transition を無効化
-        vCard.style.transform = currentMatrix; // 実座標を固定
-        void vCard.offsetWidth; // ブラウザに現在の位置を認識させる
+        // ★パッという跳ねを物理的に消すための処理（Build 13600の安定性）
+        vCard.classList.remove('floating'); // フワフワ解除
+        vCard.style.transition = "none";    // 一旦全transitionをオフに
+        void vCard.offsetWidth;             // ブラウザの描画をこの瞬間に固定
 
         // 2. 超低速スタートの上昇（テイクオフ）
-        // cubic-bezier(0.4, 0, 1, 1) で初動を極限まで滑らかに。
-        // 上昇命令を出す前に、微細な猶予を持たせる
+        // 13600のように、一度「静止」を意識させてからゆっくり動かします
         await wait(50);
-        vCard.style.transition = "transform 6.8s cubic-bezier(0.4, 0, 0.8, 1), filter 4.5s ease-out"; 
+        vCard.style.transition = "transform 6.5s cubic-bezier(0.4, 0, 0.2, 1), filter 4.5s ease-out"; 
         vCard.style.transform = `translate(${vTx}, -240px) rotate(5deg)`;
         
-        // 離陸して安定したところで光を意志の強さ（glow-strong）へ
+        // 離陸して安定したところで光を強くする
         setTimeout(() => {
             vCard.classList.remove('glow-soft');
             vCard.classList.add('glow-strong');
         }, 1000);
 
-        await wait(5600); // 頂点直前まで
+        await wait(5500); // 頂点直前まで
 
         // 3. 頂上消失（バースト）
         vCard.style.transition = "none"; 
