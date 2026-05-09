@@ -54,16 +54,18 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 消失バースト：頂上でMAX輝度になり、一気に霧散する */
+        /* 消失バースト：粒子化して霧散 */
         @keyframes ultimateVanish {
             0% { filter: drop-shadow(0 0 30px var(--accent)) brightness(3); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.05); opacity: 1; }
-            30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.25); opacity: 1; }
-            100% { filter: drop-shadow(0 0 250px var(--accent)) brightness(60) blur(100px); transform: translate(var(--base-tx), -380px) rotate(15deg) scale(2.2); opacity: 0; }
+            30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.3); opacity: 1; }
+            100% { filter: drop-shadow(0 0 200px var(--accent)) brightness(60) blur(100px); transform: translate(var(--base-tx), -380px) rotate(15deg) scale(2.3); opacity: 0; }
         }
         .vanish-action { animation: ultimateVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
-        /* 発光エフェクト */
-        .glow { filter: drop-shadow(0 0 50px var(--accent)) brightness(3.0) !important; transition: filter 2.2s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        /* 控えめな発光（スプレッド時） */
+        .glow-soft { filter: drop-shadow(0 0 20px var(--accent)) brightness(1.5) !important; transition: filter 1.5s ease-in-out !important; }
+        /* 強い発光（上昇中） */
+        .glow-strong { filter: drop-shadow(0 0 50px var(--accent)) brightness(3.0) !important; transition: filter 2.5s cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -77,7 +79,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 14800 | Absolute Float Fix</div>
+<div id="status-info">Build: 14900 | Eternal Rise Master</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -104,7 +106,7 @@
 
 <script>
     /**
-     * 【マジシャンからの隠しメッセージ】
+     * MASTER TRICK MESSAGE:
      * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
      * 私達プロマジシャンもトリックを愛し、大切にしています。
      * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
@@ -220,7 +222,6 @@
         });
         await wait(600);
 
-        // 表向きにしてフワフワ
         for (let i = 0; i < cards.length; i++) {
             setTimeout(() => {
                 cards[i].classList.add('floating');
@@ -244,7 +245,6 @@
         dynamicText.style.opacity = "0";
         await wait(500);
 
-        // 集合
         cards.forEach(c => {
             c.className = 'card is-back is-visible';
             c.style.animation = "none";
@@ -254,7 +254,6 @@
         });
         await wait(1500);
 
-        // シャッフル
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         updateSubtitle("Now Shuffling...");
@@ -263,11 +262,9 @@
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
             let pull = deck[deck.length - 2]; 
             let step = shuffleSteps[j];
-            
             pull.style.transition = "transform 0.46s cubic-bezier(0.2, 0.8, 0.2, 1)"; 
             pull.style.transform = `translate(${step.x}px, -60px) rotate(${step.r}deg)`;
             await wait(500); 
-            
             let maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
             pull.style.zIndex = maxZ + 1;
             pull.style.transform = "translate(0, 0) rotate(0deg)";
@@ -275,7 +272,6 @@
         }
         await wait(800);
 
-        // スプレッド展開
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -292,27 +288,33 @@
         });
         await wait(1800);
 
-        // --- 神秘的浮遊 ➡ 閃光消失 (修正ポイント) ---
+        // --- 劇的浮遊シークエンス ---
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // 1. 静かに光を宿す
-        vCard.classList.add('glow'); 
+        // 1. スプレッドの中で控えめに発光
+        vCard.classList.add('glow-soft'); 
         await wait(1200); 
 
-        // ★重要：上昇命令の前にフワフワアニメーションを解除
-        // これをしないと、CSSアニメーションがtransformを上書きしてしまい浮き上がりません。
+        // ★跳ね（パッという動き）を防ぐための物理解除
         vCard.classList.remove('floating');
-        void vCard.offsetWidth; // リフロー強制
+        void vCard.offsetWidth; // 位置確定
 
-        // 2. ゆっくりと上昇 (Build 13600のリズム)
-        vCard.style.transition = "transform 5.2s cubic-bezier(0.4, 0, 0.2, 1)"; 
+        // 2. 超低速スタートの上昇 ➡ 徐々に光を強く
+        vCard.style.transition = "transform 6.2s cubic-bezier(0.5, 0, 0.7, 1), filter 3s ease-out"; 
         vCard.style.transform = `translate(${vTx}, -240px) rotate(5deg)`;
-        await wait(4600); // 頂点近くまで上昇するのを待つ
+        
+        // 上昇開始から1秒後に光を強くする
+        setTimeout(() => {
+            vCard.classList.remove('glow-soft');
+            vCard.classList.add('glow-strong');
+        }, 1000);
 
-        // 3. 頂上でMAXの輝きとともに消失
+        await wait(5200); // 頂点直前まで
+
+        // 3. 頂上消失（バースト）
         vCard.style.transition = "none"; 
-        vCard.classList.remove('glow');
+        vCard.classList.remove('glow-strong');
         void vCard.offsetWidth;
         vCard.classList.add('vanish-action');
 
@@ -320,11 +322,9 @@
         pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
         await wait(1500); 
 
-        // フィナーレ
         var remaining = cards.filter(c => c !== vCard).sort((a, b) => {
             return parseFloat(a.style.getPropertyValue('--base-tx')) - parseFloat(b.style.getPropertyValue('--base-tx'));
         });
-        
         remaining.forEach((c, i) => c.querySelector('.card-front').style.backgroundImage = `url('${currentB[i]}')`);
         await wait(1200);
 
