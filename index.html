@@ -19,20 +19,15 @@
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: 1; }
         #bg-image { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 2; opacity: 0; transition: opacity 2s; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 3; }
-        
         .container { position: relative; width: 100vw; height: 100vh; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 
-        #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
+        #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); transition: opacity 0.8s; }
         .entrance-logo { font-size: 1.4rem; letter-spacing: 0.2em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; padding: 0 20px; line-height: 1.6; }
         .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
 
-        /* 字幕エリア：スペースを保護 */
         #en-subtitle { 
-            position: fixed; bottom: 40px; width: 90%; left: 5%; text-align: center; 
-            font-size: 1.3rem; color: #fff; z-index: 100; font-family: 'Times New Roman', serif; 
-            letter-spacing: 0.05em; text-shadow: 0 2px 8px #000; min-height: 3.5rem; 
-            display: flex; align-items: center; justify-content: center; line-height: 1.3;
-            white-space: pre-wrap; /* 修正：スペースを省略しない */
+            position: fixed; bottom: 40px; width: 90%; left: 5%; text-align: center; font-size: 1.3rem; color: #fff; z-index: 100; font-family: 'Times New Roman', serif; 
+            letter-spacing: 0.05em; text-shadow: 0 2px 8px #000; min-height: 3.5rem; display: flex; align-items: center; justify-content: center; line-height: 1.3; white-space: pre-wrap; 
         }
 
         #game-ui { width: 100%; margin-top: 5vh; display: none; }
@@ -58,18 +53,19 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 予兆の光（ここからフェードイン） */
         @keyframes luminousSequence {
             0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            100% { filter: drop-shadow(0 0 30px #f1d592) brightness(1.8); }
+            40% { filter: drop-shadow(0 0 25px #f1d592) brightness(1.6); }
+            100% { filter: drop-shadow(0 0 50px #f1d592) drop-shadow(0 0 80px #f1d592) brightness(2.8); }
         }
-        .glow { animation: luminousSequence 2s forwards ease-out !important; }
+        .glow { animation: luminousSequence 4.5s forwards ease-in-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
         .btn { background: #f1d592; border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
 
-        #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: #f1d592; z-index: 10001; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 1px solid #f1d592; opacity: 0.6; }
+        /* Build情報を非表示化 */
+        #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: #f1d592; z-index: 10001; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -77,7 +73,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 12100 | Luminous Breath</div>
+<div id="status-info">Build: 12200 | Production Master</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -112,7 +108,7 @@
         { A: ['./6H.webp', './5D.webp', './6C.webp', './4S.webp', './5C.webp'], B: ['./6D.webp', './5H.webp', './6S.webp', './4C.webp'] }
     ];
 
-    function getPattern() {
+    function getVisitPattern() {
         let count = parseInt(localStorage.getItem('gioia_magic_cycles') || '0');
         localStorage.setItem('gioia_magic_cycles', (count + 1).toString());
         return PATTERNS[count % PATTERNS.length];
@@ -145,7 +141,7 @@
         if(isStarted) return;
         isStarted = true;
 
-        var pattern = getPattern(); 
+        var pattern = getVisitPattern(); 
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
         var dynamicText = document.getElementById('dynamic-text');
@@ -255,7 +251,7 @@
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         dynamicText.style.opacity = "0.7"; 
-        typeSubtitle("Mixing them up...");
+        typeSubtitle("Now Shuffling...");
         for (var j=0; j<shuffleSteps.length; j++) {
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
             let pull = deck[3]; 
@@ -272,7 +268,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（有機的な光 ➡ 上昇） ---
+        // --- 4. 消失演出（光 ➡ 上昇） ---
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I have a feeling... this is your card.");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -291,17 +287,11 @@
 
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
-        
-        // ★修正：因果関係の重視（まず光り始める）
         vCard.classList.add('glow'); 
         await wait(1200); 
 
-        // ★修正：フェードインするバースト演出
-        // transition を filter にセットし、ゆっくりと頂点へ
         vCard.style.transition = "transform 3.5s cubic-bezier(0.4, 0, 0.2, 1), filter 3.5s ease-in";
         vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
-        
-        // 上昇中に光を最大値へフェードさせる（パッとならないよう transition 経由で）
         setTimeout(() => {
             vCard.style.filter = 'drop-shadow(0 0 60px #f1d592) drop-shadow(0 0 130px #f1d592) brightness(3.5) blur(5px)';
         }, 50);
@@ -342,7 +332,6 @@
         reserveUI.style.display = 'block';
         setTimeout(() => { 
             reserveUI.style.opacity = 1; 
-            document.getElementById('status-info').style.opacity = 0; 
         }, 100);
     }
 </script>
