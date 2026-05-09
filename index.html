@@ -19,13 +19,20 @@
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: 1; }
         #bg-image { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 2; opacity: 0; transition: opacity 2s; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 3; }
+        
         .container { position: relative; width: 100vw; height: 100vh; z-index: 10; display: flex; flex-direction: column; align-items: center; }
 
         #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
         .entrance-logo { font-size: 1.4rem; letter-spacing: 0.2em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; padding: 0 20px; line-height: 1.6; }
         .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
 
-        #en-subtitle { position: fixed; bottom: 30px; width: 100%; text-align: center; font-size: 0.9rem; color: #fff; opacity: 0; transition: opacity 0.5s; z-index: 100; font-family: sans-serif; letter-spacing: 0.05em; text-shadow: 0 2px 4px #000; }
+        /* 字幕エリア：大きく・2行対応 */
+        #en-subtitle { 
+            position: fixed; bottom: 40px; width: 90%; left: 5%; text-align: center; 
+            font-size: 1.3rem; color: #fff; z-index: 100; font-family: 'Times New Roman', serif; 
+            letter-spacing: 0.05em; text-shadow: 0 2px 8px #000; min-height: 3.5rem; 
+            display: flex; align-items: center; justify-content: center; line-height: 1.3;
+        }
 
         #game-ui { width: 100%; margin-top: 5vh; display: none; }
         #msg-container { height: 100px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -50,11 +57,13 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
+        /* 修正：段階的に強くなる黄金のグロウ */
         @keyframes luminousSequence {
             0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            100% { filter: drop-shadow(0 0 40px #f1d592) drop-shadow(0 0 70px #f1d592) brightness(2.5); }
+            40% { filter: drop-shadow(0 0 25px #f1d592) brightness(1.6); }
+            100% { filter: drop-shadow(0 0 50px #f1d592) drop-shadow(0 0 80px #f1d592) brightness(2.8); }
         }
-        .glow { animation: luminousSequence 3.5s forwards ease-in-out !important; }
+        .glow { animation: luminousSequence 4.5s forwards ease-in-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -68,7 +77,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 11800 | Luminous Stream</div>
+<div id="status-info">Build: 11900 | Typewriter Subtitles</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -95,6 +104,7 @@
 
 <script>
     var isStarted = false;
+    let typingTimer = null;
     
     const PATTERNS = [
         { A: ['./JH.webp', './KD.webp', './QS.webp', './QD.webp', './JC.webp'], B: ['./JS.webp', './JD.webp', './QC.webp', './QH.webp'] },
@@ -108,10 +118,29 @@
         return PATTERNS[count % PATTERNS.length];
     }
 
-    function updateSubtitle(en) {
+    // --- ★ 修正：タイプライター字幕演出 ---
+    async function typeSubtitle(text) {
         const sub = document.getElementById('en-subtitle');
-        if(!en) { sub.style.opacity = '0'; return; }
-        sub.innerText = en; sub.style.opacity = '0.7';
+        if (typingTimer) clearInterval(typingTimer);
+        sub.innerText = "";
+        sub.style.opacity = '1';
+        
+        if (!text) {
+            sub.style.opacity = '0';
+            return;
+        }
+
+        let i = 0;
+        return new Promise(resolve => {
+            typingTimer = setInterval(() => {
+                sub.innerText += text.charAt(i);
+                i++;
+                if (i >= text.length) {
+                    clearInterval(typingTimer);
+                    resolve();
+                }
+            }, 40); // 速度：35ms/文字
+        });
     }
 
     function sharePage() {
@@ -138,7 +167,7 @@
             el.className = 'msg-line bottom';
             el.innerHTML = jp;
             msgBox.appendChild(el);
-            updateSubtitle(en);
+            typeSubtitle(en);
             void el.offsetWidth;
             var lines = msgBox.querySelectorAll('.msg-line');
             if(lines.length > 2) lines[0].remove();
@@ -174,7 +203,7 @@
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Pick one card in your mind from these five.");
         
         var winW = window.innerWidth;
-        var span = (winW < 600) ? winW * 0.15 : 135; 
+        var span = (winW < 600) ? winW * 0.16 : 135; 
         var targets = [{ tx: -2 * span, ty: 30, rot: -24 },{ tx: -1 * span, ty: 15, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 15, rot: 12 },{ tx: 2 * span, ty: 30, rot: 24 }];
 
         cards.forEach(c => {
@@ -213,7 +242,7 @@
             if (i === 6) {
                 dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
                 dynamicText.style.opacity = "1";
-                updateSubtitle("Repeat its suit and number 3 times in your head.");
+                typeSubtitle("Repeat its suit and number 3 times in your head.");
             }
             if (i === 0) break;
             await wait(1000);
@@ -235,7 +264,7 @@
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         dynamicText.style.opacity = "0.7"; 
-        updateSubtitle("Now Shuffling...");
+        typeSubtitle("Now Shuffling...");
         for (var j=0; j<shuffleSteps.length; j++) {
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
             let pull = deck[3]; 
@@ -252,7 +281,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（即時上昇 & バースト） ---
+        // --- 4. 消失演出（光 ➡ 上昇 ➡ 爆発） ---
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -272,20 +301,20 @@
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // ★修正：光り始めたら溜めずに上がり始める
+        // ★修正：光が宿る予兆を確実に
         vCard.classList.add('glow'); 
-        await wait(800); // わずかな予兆のみ
+        await wait(1200); // 光り始めたのを確認してから
 
-        // 上昇開始
-        vCard.style.transition = "transform 3s cubic-bezier(0.4, 0, 0.2, 1), opacity 2s, filter 3s";
+        // 上昇開始（光を伴って）
+        vCard.style.transition = "transform 3.5s cubic-bezier(0.4, 0, 0.2, 1), filter 3.5s";
         vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
         
-        // 頂上で光MAX
+        // 頂上バースト
         setTimeout(() => {
             vCard.style.filter = 'drop-shadow(0 0 50px #f1d592) drop-shadow(0 0 120px #f1d592) brightness(3) blur(10px)';
-        }, 2200);
+        }, 2500);
 
-        await wait(3000);
+        await wait(3500);
         vCard.style.opacity = '0'; 
         vCard.style.filter = 'blur(50px) brightness(5)';
         await wait(1000);
@@ -310,13 +339,13 @@
         msgBox.style.opacity = "0";
         dynamicText.style.top = "10px";
         dynamicText.innerHTML = "奇跡を感じましたか？<br>Gran GIOIA Ginzaでは、<br>あなたの眼の前で「奇跡」をお届けします。";
-        updateSubtitle("At Gran GIOIA Ginza, we deliver miracles right before your eyes.");
+        typeSubtitle("At Gran GIOIA Ginza, we deliver miracles right before your eyes.");
         dynamicText.style.opacity = "1";
         dynamicText.style.fontSize = "1.2rem";
 
-        await wait(4500); 
+        await wait(5500); 
         table.style.opacity = '0';
-        updateSubtitle("");
+        typeSubtitle("");
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
         setTimeout(() => { reserveUI.style.opacity = 1; document.getElementById('status-info').style.opacity = 0; }, 100);
