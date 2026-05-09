@@ -49,21 +49,22 @@
 
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
-            50= { transform: translate(var(--base-tx), calc(var(--base-ty) - 15px)) rotate(calc(var(--base-rot) + 1.2deg)); } 
+            50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 15px)) rotate(calc(var(--base-rot) + 1.2deg)); } 
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 予兆の光（ここからフェードイン） */
+        /* 修正：発光アニメーションの構文を修復 */
         @keyframes luminousSequence {
-            0= { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            100= { filter: drop-shadow(0 0 30px #f1d592) brightness(1.8); }
+            0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
+            100% { filter: drop-shadow(0 0 30px #f1d592) brightness(1.8); }
         }
-        .glow { animation: luminousSequence 2s forwards ease-out !important; }
+        .glow { animation: luminousSequence 2.5s forwards ease-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
         .btn { background: #f1d592; border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
 
+        /* Build情報を非表示化 */
         #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: #f1d592; z-index: 10001; opacity: 0; pointer-events: none; }
     </style>
 </head>
@@ -72,7 +73,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 12300 | Luminous Rise</div>
+<div id="status-info">Build: 12400 | Luminous Stream Pure</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -186,7 +187,7 @@
         cards.forEach(c => { c.style.transition = "opacity 1.5s ease"; c.classList.add('is-visible'); });
         await wait(1800);
 
-        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Pick one card in your mind from these five.");
+        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Just think of any one of these five cards.");
         
         var winW = window.innerWidth;
         var span = (winW < 600) ? winW * 0.15 : 135; 
@@ -250,7 +251,7 @@
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         dynamicText.style.opacity = "0.7"; 
-        typeSubtitle("Mixing them up...");
+        typeSubtitle("Now Shuffling...");
         for (var j=0; j<shuffleSteps.length; j++) {
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
             let pull = deck[3]; 
@@ -267,7 +268,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（有機的な光 ➡ 上昇） ---
+        // --- 4. 消失演出 ---
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -287,19 +288,17 @@
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // ★修正：因果関係の重視（まず光り始める）
+        // ★修正：発光アニメーションを確実に開始
         vCard.classList.add('glow'); 
-        await wait(1200); 
+        await wait(1200); // 光が宿るのを確認
 
-        // ★修正：途中からさらに光るエフェクトを削除
-        vCard.style.transition = "transform 3.5s cubic-bezier(0.4, 0, 0.2, 1), filter 3.5s ease-in";
+        // ★修正：上昇（光った状態を維持）
+        vCard.style.transition = "transform 3.5s cubic-bezier(0.4, 0, 0.2, 1)";
         vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
-        
-        // （バースト演出の setTimeout を削除）
 
-        await wait(3500); // 上昇アニメーション完了
+        await wait(3500); // 頂上に到達
         vCard.style.opacity = '0'; 
-        vCard.style.filter = 'blur(60px) brightness(5)'; // 消失の瞬間のblurは維持
+        vCard.style.filter = 'blur(60px) brightness(5)'; // 霧散エフェクト
         await wait(1000);
 
         // --- 5. フィナーレ ---
@@ -331,9 +330,7 @@
         typeSubtitle("");
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
-        setTimeout(() => { 
-            reserveUI.style.opacity = 1; 
-        }, 100);
+        setTimeout(() => { reserveUI.style.opacity = 1; }, 100);
     }
 </script>
 </body>
