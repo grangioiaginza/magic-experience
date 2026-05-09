@@ -48,25 +48,24 @@
         .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); background-size: cover; background-position: center; border: 0.5px solid rgba(241,213,146,0.3); }
         .card-back { transform: rotateY(180deg); background-image: url('./back.webp'); background-color: #1a1a1a; }
 
-        /* 通常のフワフワ */
         @keyframes magicFloat { 
             0%, 100% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); } 
             50% { transform: translate(var(--base-tx), calc(var(--base-ty) - 15px)) rotate(calc(var(--base-rot) + 1.2deg)); } 
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
 
-        /* 【究極修正】神秘的な上昇アニメーション */
+        /* 【アクセラレイテッド・ライズ】3.8秒に短縮した上昇アニメーション */
         @keyframes cinematicRise {
-            0% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 15px var(--accent)) brightness(1.2); }
-            30% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 30px var(--accent)) brightness(2.0); } /* 溜め：その場で光る */
-            100% { transform: translate(var(--base-tx), -240px) rotate(5deg); filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); } /* 離陸：ゆっくり上昇 */
+            0% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 10px var(--accent)) brightness(1.1); }
+            30% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 30px var(--accent)) brightness(2.0); } /* 1.1sまで溜め */
+            100% { transform: translate(var(--base-tx), -240px) rotate(5deg); filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); } /* 頂点 */
         }
-        .miracle-rise { animation: cinematicRise 7.5s forwards cubic-bezier(0.35, 0, 0.65, 1) !important; }
+        .miracle-rise { animation: cinematicRise 3.8s forwards cubic-bezier(0.33, 0, 0.67, 1) !important; }
 
         /* 消失バースト */
         @keyframes cinematicVanish {
             0% { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.0); opacity: 1; }
-            30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(10px); transform: translate(var(--base-tx), -270px) rotate(8deg) scale(1.2); opacity: 1; }
+            30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(8deg) scale(1.2); opacity: 1; }
             100% { filter: drop-shadow(0 0 250px var(--accent)) brightness(80) blur(120px); transform: translate(var(--base-tx), -450px) rotate(15deg) scale(3.0); opacity: 0; }
         }
         .vanish-action { animation: cinematicVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
@@ -83,7 +82,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 15600 | Cinematic Miracle Edition</div>
+<div id="status-info">Build: 15700 | Accelerated Miracle</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -297,17 +296,16 @@
         });
         await wait(1800);
 
-        // --- シネマティック浮遊 ➡ 消失シークエンス ---
+        // --- テンポアップした上昇 ➡ 消失シークエンス ---
         var vCard = finalDeck[2]; 
         
-        // ★決定的修正：上昇命令ではなく「アニメーション」を上書きする
-        vCard.classList.remove('floating'); // 通常のフワフワを解除
-        void vCard.offsetWidth; // 描画強制リセット
+        vCard.classList.remove('floating'); 
+        void vCard.offsetWidth; 
         
-        // 1. その場で光り、じわじわと浮き上がる（cinematicRise適用）
+        // 1. その場で光り、上昇開始 (Build 15700: 3.8s)
         vCard.classList.add('miracle-rise'); 
         
-        await wait(6800); // 上昇アニメーションの佳境まで待機
+        await wait(3400); // 上昇アニメーションの頂点手前まで待機
 
         // 2. 頂上でバースト消失
         vCard.classList.remove('miracle-rise');
