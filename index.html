@@ -10,12 +10,13 @@
             --card-h: calc(var(--card-w) * 1.5);
             --max-card-w: 169px;
             --max-card-h: 253px;
+            --accent: #f1d592;
         }
         @media (min-width: 600px) {
             :root { --card-w: var(--max-card-w); --card-h: var(--max-card-h); }
         }
 
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: #f1d592; font-family: "Yu Mincho", serif; overflow: hidden; }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; color: var(--accent); font-family: "Yu Mincho", serif; overflow: hidden; }
         #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000 100%); z-index: 1; }
         #bg-image { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('./SocialCover.webp') center/cover no-repeat; z-index: 2; opacity: 0; transition: opacity 2s; }
         #bg-curtain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.75); z-index: 3; }
@@ -23,7 +24,7 @@
 
         #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); transition: opacity 0.8s; }
         .entrance-logo { font-size: 1.4rem; letter-spacing: 0.2em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; padding: 0 20px; line-height: 1.6; }
-        .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
+        .start-btn { background: var(--accent); color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
 
         #en-subtitle { 
             position: fixed; bottom: 40px; width: 90%; left: 5%; text-align: center; font-size: 1.3rem; color: #fff; z-index: 100; font-family: 'Times New Roman', serif; 
@@ -37,10 +38,10 @@
 
         #sub-msg-area { height: 160px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; z-index: 50; }
         #timer { font-size: 5rem; font-weight: bold; color: #fff; opacity: 0; text-shadow: 0 0 50px #000; transition: opacity 0.5s; height: 100px; display: flex; align-items: center; }
-        #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: #f1d592; text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
+        #dynamic-text { opacity: 0; transition: opacity 1.2s ease; font-size: 1rem; letter-spacing: 0.05em; color: var(--accent); text-align: center; line-height: 1.6; text-shadow: 0 0 20px #000; padding: 0 15px; position: absolute; top: 90px; }
 
         #card-table { height: 400px; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; transition: opacity 2s ease; margin-top: 10px; }
-        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s, filter 2.5s ease-in-out; }
+        .card { width: var(--card-w); height: var(--card-h); max-width: var(--max-card-w); max-height: var(--max-card-h); position: absolute; left: 50%; margin-left: calc(var(--card-w) / -2); perspective: 1200px; opacity: 0; pointer-events: none; transition: transform 0.8s, opacity 0.8s; }
         .card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.8s; transform-style: preserve-3d; }
         .card.is-back .card-inner { transform: rotateY(180deg); }
         .card.is-visible { opacity: 1; }
@@ -53,24 +54,21 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        @keyframes luminousPremonition {
-            0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            100% { filter: drop-shadow(0 0 40px #f1d592) brightness(2.0); }
+        /* 消失アニメーション：光がMAXになって空気へ溶ける */
+        @keyframes ultimateVanish {
+            0% { filter: drop-shadow(0 0 0px transparent) brightness(1) blur(0px); transform: translate(var(--base-tx), -280px) rotate(5deg) scale(1); opacity: 1; }
+            40% { filter: drop-shadow(0 0 80px #fff) brightness(20) blur(10px); transform: translate(var(--base-tx), -300px) rotate(8deg) scale(1.1); opacity: 1; }
+            100% { filter: drop-shadow(0 0 150px var(--accent)) brightness(40) blur(60px); transform: translate(var(--base-tx), -340px) rotate(12deg) scale(1.6); opacity: 0; }
         }
-        .glow { animation: luminousPremonition 1.2s forwards ease-out !important; }
-
-        @keyframes luminousEvaporation {
-        0% { filter: drop-shadow(0 0 0px transparent) brightness(1) blur(0px); transform: translate(var(--base-tx), -280px) rotate(5deg) scale(1); opacity: 1; }
-        20% { filter: drop-shadow(0 0 50px #fff) brightness(15) blur(5px); transform: translate(var(--base-tx), -290px) rotate(7deg) scale(1.1); opacity: 1; }
-        100% { filter: drop-shadow(0 0 120px #f1d592) brightness(5) blur(40px); transform: translate(var(--base-tx), -320px) rotate(10deg) scale(1.5); opacity: 0; }
-    }
-        .vanish-action { animation: luminousEvaporation 1.5s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        .vanish-action { animation: ultimateVanish 1.6s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        
+        .glow { filter: drop-shadow(0 0 30px var(--accent)) brightness(1.8); transition: filter 1.2s ease-out; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        .btn { background: #f1d592; border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        .btn { background: var(--accent); border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
 
-        #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: #f1d592; z-index: 10001; opacity: 0; pointer-events: none; }
+        #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: var(--accent); z-index: 10001; opacity: 0.4; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -78,7 +76,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 13600 | Ultimate Whiteout</div>
+<div id="status-info">Build: 14000 | Grand Finale</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -174,7 +172,7 @@
         
         await wait(1000);
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "Get ready to witness a little miracle.");
-        await wait(2400);
+        await wait(2200);
 
         var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
         var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
@@ -197,33 +195,24 @@
         var span = (winW < 600) ? winW * 0.15 : 135; 
         var targets = [{ tx: -2 * span, ty: 30, rot: -24 },{ tx: -1 * span, ty: 15, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 15, rot: 12 },{ tx: 2 * span, ty: 30, rot: 24 }];
 
-        cards.forEach(c => {
-            c.style.transition = "transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)";
-            c.style.transform = `translate(${targets[0].tx}px, ${targets[0].ty}px) rotate(${targets[0].rot}deg)`;
-        });
-        await wait(900);
-
+        // 1枚ずつ配る
         for (let i = 0; i < cards.length; i++) {
-            let droppedCard = cards[i];
             let t = targets[i];
-            for (let j = i; j < cards.length; j++) {
-                cards[j].style.transition = "transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)";
-                cards[j].style.transform = `translate(${t.tx}px, ${t.ty}px) rotate(${t.rot}deg)`;
-            }
-            droppedCard.style.setProperty('--base-tx', t.tx + "px");
-            droppedCard.style.setProperty('--base-ty', t.ty + "px");
-            droppedCard.style.setProperty('--base-rot', t.rot + "deg");
-            await wait(350);
+            cards[i].style.transition = "transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1)";
+            cards[i].style.transform = `translate(${t.tx}px, ${t.ty}px) rotate(${t.rot}deg)`;
+            cards[i].style.setProperty('--base-tx', t.tx + "px");
+            cards[i].style.setProperty('--base-ty', t.ty + "px");
+            cards[i].style.setProperty('--base-rot', t.rot + "deg");
+            await wait(300);
         }
         await wait(500);
 
+        // 表向きにしてフワフワ
         for (let i = 0; i < cards.length; i++) {
-            let c = cards[i];
             setTimeout(() => {
-                c.style.animationDelay = (Math.random() * 2).toFixed(2) + "s";
-                c.classList.add('floating');
-                c.classList.remove('is-back');
-            }, i * 400);
+                cards[i].classList.add('floating');
+                cards[i].classList.remove('is-back');
+            }, i * 300);
         }
         await wait(2000);
 
@@ -242,6 +231,7 @@
         dynamicText.style.opacity = "0";
         await wait(500);
 
+        // 集合
         cards.forEach(c => {
             c.className = 'card is-back is-visible';
             c.style.animation = "none";
@@ -251,27 +241,34 @@
         });
         await wait(1500);
 
+        // シャッフル：一番上(Anchor)を物理的に固定
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
-        dynamicText.style.opacity = "0.7"; 
         updateSubtitle("Now Shuffling...");
+
         for (var j=0; j<shuffleSteps.length; j++) {
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
+            
+            // deck[4]をアンカーとして最前面(zIndex: 10000)に固定
+            let anchor = deck[4];
+            anchor.style.zIndex = 10000;
+            
+            // deck[3]（アンカーのすぐ下）を引き抜く
             let pull = deck[3]; 
             let step = shuffleSteps[j];
-            dynamicText.innerText = "Now Shuffling..."; 
+            
             pull.style.transition = "transform 0.46s cubic-bezier(0.2, 0.8, 0.2, 1)"; 
             pull.style.transform = `translate(${step.x}px, -60px) rotate(${step.r}deg)`;
             await wait(500); 
-            let maxZ = Math.max(...cards.map(el => parseInt(el.style.zIndex)));
-            pull.style.zIndex = maxZ + 1;
+            
+            // 戻すときはアンカー(10000)よりわずかに低い位置へ
+            pull.style.zIndex = 9999;
             pull.style.transform = "translate(0, 0) rotate(0deg)";
             await wait(350); 
         }
-        dynamicText.style.opacity = "0";
-        await wait(1000);
+        await wait(800);
 
-        // --- 4. 劇的消失演出（ホワイトアウト ➡ 霧散） ---
+        // 劇的消失演出
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -291,29 +288,20 @@
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-    // 1. 光が宿る
-    vCard.classList.add('glow'); 
-    await wait(600); 
+        vCard.classList.add('glow'); 
+        await wait(800); 
 
-    // 2. 実体を持って上昇 (2.8s)
-    vCard.style.transition = "transform 2.8s cubic-bezier(0.4, 0, 0.2, 1), filter 2.8s ease-in";
-    vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
-    await wait(2800); 
+        // 上昇と消失クラスの適用
+        vCard.style.transition = "none"; 
+        vCard.classList.remove('floating');
+        void vCard.offsetWidth;
+        vCard.classList.add('vanish-action');
 
-    // ★ 3. 頂上での劇的消失（アニメーションクラスへ切り替え）
-    // transition制御から、より複雑な挙動が可能なAnimation制御へスイッチします
-    vCard.style.transition = "none"; 
-    vCard.classList.remove('glow', 'floating');
-    void vCard.offsetWidth; // リフロー
-    vCard.classList.add('vanish-action');
+        await wait(400);
+        pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
+        await wait(1300); 
 
-    // 消え始める瞬間にセリフを被せる
-    await wait(300);
-    pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
-    
-    await wait(1200); // アニメーション終了を待つ
-
-        // --- 5. フィナーレ ---
+        // フィナーレ
         var remaining = cards.filter(c => c !== vCard).sort((a, b) => {
             return parseFloat(a.style.getPropertyValue('--base-tx')) - parseFloat(b.style.getPropertyValue('--base-tx'));
         });
@@ -341,7 +329,7 @@
         updateSubtitle("");
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
-        setTimeout(() => {  reserveUI.style.opacity = 1; }, 100);
+        setTimeout(() => { reserveUI.style.opacity = 1; }, 100);
     }
 </script>
 </body>
