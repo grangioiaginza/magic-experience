@@ -54,7 +54,7 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 消失バースト：究極の閃光霧散 */
+        /* 消失バースト */
         @keyframes ultimateVanish {
             0% { filter: drop-shadow(0 0 30px var(--accent)) brightness(3); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.05); opacity: 1; }
             30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(7deg) scale(1.3); opacity: 1; }
@@ -62,10 +62,10 @@
         }
         .vanish-action { animation: ultimateVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
-        /* 予兆の光（スプレッド時：控えめ） */
-        .glow-soft { filter: drop-shadow(0 0 20px var(--accent)) brightness(1.25) !important; transition: filter 1.5s ease-in-out !important; }
-        /* 意志の光（上昇中：強力） */
-        .glow-strong { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5) !important; transition: filter 3s cubic-bezier(0.5, 0, 0.8, 1) !important; }
+        /* 予兆の光（控えめ） */
+        .glow-soft { filter: drop-shadow(0 0 12px var(--accent)) brightness(1.2) !important; transition: filter 2.0s ease-in-out !important; }
+        /* 意志の光（強力・上昇中） */
+        .glow-strong { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5) !important; transition: filter 3.5s ease-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -79,7 +79,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 15100 | Zero-Pop Rise Master</div>
+<div id="status-info">Build: 15200 | Seamless Rise Pro</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -106,7 +106,7 @@
 
 <script>
     /**
-     * MASTER TRICK MESSAGE:
+     * 【マジシャンからの隠しメッセージ】
      * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
      * 私達プロマジシャンもトリックを愛し、大切にしています。
      * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
@@ -288,34 +288,38 @@
         });
         await wait(1800);
 
-        // --- 究極の神秘的浮遊 ➡ 閃光消失（Build 15100 固定プロトコル） ---
+        // --- 究極の「跳ねない」浮遊 ➡ 閃光消失（Build 15200 プロトコル） ---
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
-        var vTy = vCard.style.getPropertyValue('--base-ty');
-        var vRot = vCard.style.getPropertyValue('--base-rot');
         
-        // 1. スプレッドの中で静かに予兆の光を宿す
+        // 1. スプレッドの中で静かに予兆の光を宿す（控えめ）
         vCard.classList.add('glow-soft'); 
         await wait(1400); 
 
-        // ★パッという跳ねを物理的に防ぐための「現在地ロック」
-        vCard.classList.remove('floating');
-        vCard.style.transition = "none";
-        vCard.style.transform = `translate(${vTx}, ${vTy}) rotate(${vRot})`;
-        void vCard.offsetWidth; // ブラウザに現在の静止位置を強制認識させる
+        // ★パッという跳ねを物理的に消すための「実座標キャプチャ」
+        // 今、この瞬間のフワフワしている正確なmatrixを取得します
+        var computedStyle = window.getComputedStyle(vCard);
+        var currentMatrix = computedStyle.transform;
+        
+        vCard.classList.remove('floating'); // アニメーション解除
+        vCard.style.transition = "none";    // 一旦 transition を無効化
+        vCard.style.transform = currentMatrix; // 実座標を固定
+        void vCard.offsetWidth; // ブラウザに現在の位置を認識させる
 
-        // 2. 超低速スタートの上昇 ➡ 徐々に意志の光を強く
-        // cubic-bezier(0.5, 0, 0.8, 1) で初動の垂直速度をほぼゼロから開始
-        vCard.style.transition = "transform 6.5s cubic-bezier(0.5, 0, 0.8, 1), filter 4.5s ease-out"; 
+        // 2. 超低速スタートの上昇（テイクオフ）
+        // cubic-bezier(0.4, 0, 1, 1) で初動を極限まで滑らかに。
+        // 上昇命令を出す前に、微細な猶予を持たせる
+        await wait(50);
+        vCard.style.transition = "transform 6.8s cubic-bezier(0.4, 0, 0.8, 1), filter 4.5s ease-out"; 
         vCard.style.transform = `translate(${vTx}, -240px) rotate(5deg)`;
         
-        // 離陸直後に光を徐々に強める
+        // 離陸して安定したところで光を意志の強さ（glow-strong）へ
         setTimeout(() => {
             vCard.classList.remove('glow-soft');
             vCard.classList.add('glow-strong');
-        }, 800);
+        }, 1000);
 
-        await wait(5500); // 頂点直前まで
+        await wait(5600); // 頂点直前まで
 
         // 3. 頂上消失（バースト）
         vCard.style.transition = "none"; 
