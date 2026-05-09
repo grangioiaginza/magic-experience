@@ -58,6 +58,13 @@
             100% { filter: drop-shadow(0 0 40px #f1d592) brightness(2.0); }
         }
         .glow { animation: luminousPremonition 1.2s forwards ease-out !important; }
+
+        @keyframes luminousEvaporation {
+        0% { filter: drop-shadow(0 0 0px transparent) brightness(1) blur(0px); transform: translate(var(--base-tx), -280px) rotate(5deg) scale(1); opacity: 1; }
+        20% { filter: drop-shadow(0 0 50px #fff) brightness(15) blur(5px); transform: translate(var(--base-tx), -290px) rotate(7deg) scale(1.1); opacity: 1; }
+        100% { filter: drop-shadow(0 0 120px #f1d592) brightness(5) blur(40px); transform: translate(var(--base-tx), -320px) rotate(10deg) scale(1.5); opacity: 0; }
+    }
+        .vanish-action { animation: luminousEvaporation 1.5s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -284,31 +291,27 @@
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // 1. 光が宿る
-        vCard.classList.add('glow'); 
-        await wait(600); 
+    // 1. 光が宿る
+    vCard.classList.add('glow'); 
+    await wait(600); 
 
-        // 2. 実体を持って上昇 (2.8s)
-        vCard.style.transition = "transform 2.8s cubic-bezier(0.4, 0, 0.2, 1), filter 2.8s ease-in";
-        vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
-        await wait(2800); 
+    // 2. 実体を持って上昇 (2.8s)
+    vCard.style.transition = "transform 2.8s cubic-bezier(0.4, 0, 0.2, 1), filter 2.8s ease-in";
+    vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
+    await wait(2800); 
 
-        // ★ 3. 頂上での劇的消失（極限ホワイトアウト ＆ ジュワッと霧散）
-        // まず光をMAX（ホワイトアウト）にして実体感を消す
-        vCard.style.transition = "filter 0.5s ease-out";
-        vCard.style.filter = 'drop-shadow(0 0 100px #fff) brightness(30) blur(20px)';
-        await wait(300); 
+    // ★ 3. 頂上での劇的消失（アニメーションクラスへ切り替え）
+    // transition制御から、より複雑な挙動が可能なAnimation制御へスイッチします
+    vCard.style.transition = "none"; 
+    vCard.classList.remove('glow', 'floating');
+    void vCard.offsetWidth; // リフロー
+    vCard.classList.add('vanish-action');
 
-        // その光輝状態のまま、一気に空気へ溶かす
-        vCard.style.transition = "filter 1.2s ease-in, opacity 1.2s ease-in";
-        vCard.style.opacity = '0';
-        vCard.style.filter = 'drop-shadow(0 0 150px #f1d592) brightness(50) blur(120px)';
-
-        // ★ セリフのオーバーラップ開始（消えきる700ms前）
-        await wait(500);
-        pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
-        
-        await wait(1000); 
+    // 消え始める瞬間にセリフを被せる
+    await wait(300);
+    pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
+    
+    await wait(1200); // アニメーション終了を待つ
 
         // --- 5. フィナーレ ---
         var remaining = cards.filter(c => c !== vCard).sort((a, b) => {
