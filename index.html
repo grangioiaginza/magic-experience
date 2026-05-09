@@ -54,15 +54,15 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
 
-        /* 【アクセラレイテッド・ライズ】3.8秒に短縮した上昇アニメーション */
+        /* 上昇アニメーション（停止状態を保持するため forwards を指定） */
         @keyframes cinematicRise {
             0% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 10px var(--accent)) brightness(1.1); }
-            30% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 30px var(--accent)) brightness(2.0); } /* 1.1sまで溜め */
-            100% { transform: translate(var(--base-tx), -240px) rotate(5deg); filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); } /* 頂点 */
+            30% { transform: translate(var(--base-tx), var(--base-ty)) rotate(var(--base-rot)); filter: drop-shadow(0 0 30px var(--accent)) brightness(2.0); }
+            100% { transform: translate(var(--base-tx), -240px) rotate(5deg); filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); }
         }
         .miracle-rise { animation: cinematicRise 3.8s forwards cubic-bezier(0.33, 0, 0.67, 1) !important; }
 
-        /* 消失バースト */
+        /* 消失バースト：頂上（-240px）から開始 */
         @keyframes cinematicVanish {
             0% { filter: drop-shadow(0 0 60px var(--accent)) brightness(3.5); transform: translate(var(--base-tx), -240px) rotate(5deg) scale(1.0); opacity: 1; }
             30% { filter: drop-shadow(0 0 120px #fff) brightness(30) blur(5px); transform: translate(var(--base-tx), -270px) rotate(8deg) scale(1.2); opacity: 1; }
@@ -82,7 +82,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 15700 | Accelerated Miracle</div>
+<div id="status-info">Build: 15800 | Rise-Stop-Vanish Protocol</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -109,12 +109,11 @@
 
 <script>
     /**
-     * 【マジシャンからの隠しメッセージ】
+     * MASTER TRICK MESSAGE:
      * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
      * 私達プロマジシャンもトリックを愛し、大切にしています。
-     * もうお分かりかもしれませんが、最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。
-     * だから、何を選ばれても消えるのです。
-     * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
+     * 最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。だから、何を選ばれても消えるのです。
+     * 昔の人は本当にすごいことを考えましたね。このトリックを愛し大切にしてくださいね。
      * 39aco
      */
 
@@ -296,18 +295,21 @@
         });
         await wait(1800);
 
-        // --- テンポアップした上昇 ➡ 消失シークエンス ---
+        // --- 究極の「上昇 ➡ 停止 ➡ 消失」シークエンス ---
         var vCard = finalDeck[2]; 
         
         vCard.classList.remove('floating'); 
         void vCard.offsetWidth; 
         
-        // 1. その場で光り、上昇開始 (Build 15700: 3.8s)
+        // 1. 上昇開始 (3.8s)
         vCard.classList.add('miracle-rise'); 
-        
-        await wait(3400); // 上昇アニメーションの頂点手前まで待機
+        await wait(3800); 
 
-        // 2. 頂上でバースト消失
+        // 2. 頂上で停止 (1.0s)
+        // forwards により位置は固定されています
+        await wait(1000); 
+
+        // 3. 消失バースト
         vCard.classList.remove('miracle-rise');
         void vCard.offsetWidth;
         vCard.classList.add('vanish-action');
