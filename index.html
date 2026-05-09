@@ -26,12 +26,13 @@
         .entrance-logo { font-size: 1.4rem; letter-spacing: 0.2em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; padding: 0 20px; line-height: 1.6; }
         .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
 
-        /* 字幕エリア：大きく・2行対応 */
+        /* 字幕エリア：スペースを保護 */
         #en-subtitle { 
             position: fixed; bottom: 40px; width: 90%; left: 5%; text-align: center; 
             font-size: 1.3rem; color: #fff; z-index: 100; font-family: 'Times New Roman', serif; 
             letter-spacing: 0.05em; text-shadow: 0 2px 8px #000; min-height: 3.5rem; 
             display: flex; align-items: center; justify-content: center; line-height: 1.3;
+            white-space: pre-wrap; /* 修正：スペースを省略しない */
         }
 
         #game-ui { width: 100%; margin-top: 5vh; display: none; }
@@ -57,13 +58,12 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* 修正：段階的に強くなる黄金のグロウ */
+        /* 予兆の光（ここからフェードイン） */
         @keyframes luminousSequence {
             0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            40% { filter: drop-shadow(0 0 25px #f1d592) brightness(1.6); }
-            100% { filter: drop-shadow(0 0 50px #f1d592) drop-shadow(0 0 80px #f1d592) brightness(2.8); }
+            100% { filter: drop-shadow(0 0 30px #f1d592) brightness(1.8); }
         }
-        .glow { animation: luminousSequence 4.5s forwards ease-in-out !important; }
+        .glow { animation: luminousSequence 2s forwards ease-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -77,7 +77,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 11900 | Typewriter Subtitles</div>
+<div id="status-info">Build: 12100 | Luminous Breath</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -118,28 +118,19 @@
         return PATTERNS[count % PATTERNS.length];
     }
 
-    // --- ★ 修正：タイプライター字幕演出 ---
     async function typeSubtitle(text) {
         const sub = document.getElementById('en-subtitle');
         if (typingTimer) clearInterval(typingTimer);
         sub.innerText = "";
         sub.style.opacity = '1';
-        
-        if (!text) {
-            sub.style.opacity = '0';
-            return;
-        }
-
+        if (!text) { sub.style.opacity = '0'; return; }
         let i = 0;
         return new Promise(resolve => {
             typingTimer = setInterval(() => {
                 sub.innerText += text.charAt(i);
                 i++;
-                if (i >= text.length) {
-                    clearInterval(typingTimer);
-                    resolve();
-                }
-            }, 40); // 速度：35ms/文字
+                if (i >= text.length) { clearInterval(typingTimer); resolve(); }
+            }, 40);
         });
     }
 
@@ -182,7 +173,7 @@
         setTimeout(() => { document.getElementById('entrance').style.display = 'none'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
         
         await wait(1000);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "I would like to show you a 'miracle' now.");
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "Get ready to witness a little miracle.");
         await wait(2400);
 
         var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
@@ -200,10 +191,10 @@
         cards.forEach(c => { c.style.transition = "opacity 1.5s ease"; c.classList.add('is-visible'); });
         await wait(1800);
 
-        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Pick one card in your mind from these five.");
+        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Just think of any one of these five cards.");
         
         var winW = window.innerWidth;
-        var span = (winW < 600) ? winW * 0.16 : 135; 
+        var span = (winW < 600) ? winW * 0.15 : 135; 
         var targets = [{ tx: -2 * span, ty: 30, rot: -24 },{ tx: -1 * span, ty: 15, rot: -12 },{ tx: 0, ty: 0, rot: 0 },{ tx: 1 * span, ty: 15, rot: 12 },{ tx: 2 * span, ty: 30, rot: 24 }];
 
         cards.forEach(c => {
@@ -242,7 +233,7 @@
             if (i === 6) {
                 dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
                 dynamicText.style.opacity = "1";
-                typeSubtitle("Repeat its suit and number 3 times in your head.");
+                typeSubtitle("Now, whisper its name three times in your head.");
             }
             if (i === 0) break;
             await wait(1000);
@@ -264,7 +255,7 @@
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         dynamicText.style.opacity = "0.7"; 
-        typeSubtitle("Now Shuffling...");
+        typeSubtitle("Mixing them up...");
         for (var j=0; j<shuffleSteps.length; j++) {
             let deck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
             let pull = deck[3]; 
@@ -281,8 +272,8 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（光 ➡ 上昇 ➡ 爆発） ---
-        pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
+        // --- 4. 消失演出（有機的な光 ➡ 上昇） ---
+        pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I have a feeling... this is your card.");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
         finalDeck.forEach((c, i) => {
@@ -301,26 +292,27 @@
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // ★修正：光が宿る予兆を確実に
+        // ★修正：因果関係の重視（まず光り始める）
         vCard.classList.add('glow'); 
-        await wait(1200); // 光り始めたのを確認してから
+        await wait(1200); 
 
-        // 上昇開始（光を伴って）
-        vCard.style.transition = "transform 3.5s cubic-bezier(0.4, 0, 0.2, 1), filter 3.5s";
+        // ★修正：フェードインするバースト演出
+        // transition を filter にセットし、ゆっくりと頂点へ
+        vCard.style.transition = "transform 3.5s cubic-bezier(0.4, 0, 0.2, 1), filter 3.5s ease-in";
         vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
         
-        // 頂上バースト
+        // 上昇中に光を最大値へフェードさせる（パッとならないよう transition 経由で）
         setTimeout(() => {
-            vCard.style.filter = 'drop-shadow(0 0 50px #f1d592) drop-shadow(0 0 120px #f1d592) brightness(3) blur(10px)';
-        }, 2500);
+            vCard.style.filter = 'drop-shadow(0 0 60px #f1d592) drop-shadow(0 0 130px #f1d592) brightness(3.5) blur(5px)';
+        }, 50);
 
         await wait(3500);
         vCard.style.opacity = '0'; 
-        vCard.style.filter = 'blur(50px) brightness(5)';
+        vCard.style.filter = 'blur(60px) brightness(5)';
         await wait(1000);
 
         // --- 5. フィナーレ ---
-        pushMsg("あなたのカードだけが、消えました。", "Only your card has disappeared.");
+        pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
         var remaining = cards.filter(c => c !== vCard).sort((a, b) => {
             return parseFloat(a.style.getPropertyValue('--base-tx')) - parseFloat(b.style.getPropertyValue('--base-tx'));
         });
@@ -339,7 +331,7 @@
         msgBox.style.opacity = "0";
         dynamicText.style.top = "10px";
         dynamicText.innerHTML = "奇跡を感じましたか？<br>Gran GIOIA Ginzaでは、<br>あなたの眼の前で「奇跡」をお届けします。";
-        typeSubtitle("At Gran GIOIA Ginza, we deliver miracles right before your eyes.");
+        typeSubtitle("Experience a real miracle, right here at Gran GIOIA Ginza.");
         dynamicText.style.opacity = "1";
         dynamicText.style.fontSize = "1.2rem";
 
@@ -348,7 +340,10 @@
         typeSubtitle("");
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
-        setTimeout(() => { reserveUI.style.opacity = 1; document.getElementById('status-info').style.opacity = 0; }, 100);
+        setTimeout(() => { 
+            reserveUI.style.opacity = 1; 
+            document.getElementById('status-info').style.opacity = 0; 
+        }, 100);
     }
 </script>
 </body>
