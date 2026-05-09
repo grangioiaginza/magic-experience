@@ -6,7 +6,8 @@
     <title>マジックレストラン Gran GIOIA Ginza -Card Magic Experience-</title>
     <style>
         :root {
-            --card-w: 23vw;
+            /* 修正：左右の余裕を出すためサイズを微調整 */
+            --card-w: 21vw;
             --card-h: calc(var(--card-w) * 1.5);
             --max-card-w: 130px;
             --max-card-h: 195px;
@@ -23,7 +24,7 @@
 
         #entrance { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
         .entrance-logo { font-size: 1.4rem; letter-spacing: 0.2em; margin-bottom: 50px; text-align: center; text-shadow: 0 0 20px #000; padding: 0 20px; line-height: 1.6; }
-        .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); transition: 0.3s; }
+        .start-btn { background: #f1d592; color: #000; border: none; padding: 20px 45px; font-size: 1.1rem; font-weight: bold; cursor: pointer; letter-spacing: 0.2em; min-width: 240px; box-shadow: 0 0 30px rgba(241,213,146,0.5); }
 
         #game-ui { width: 100%; margin-top: 5vh; display: none; }
         #msg-container { height: 100px; width: 100%; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
@@ -48,10 +49,8 @@
         }
         .floating { animation: magicFloat 3.5s infinite ease-in-out !important; }
         
-        /* ★重要：WebPの形に沿って光らせる drop-shadow 演出 */
-        .glow { 
-            filter: drop-shadow(0 0 15px #f1d592) drop-shadow(0 0 35px #f1d592) !important;
-        }
+        /* WebP透明部分追従グロウ */
+        .glow { filter: drop-shadow(0 0 15px #f1d592) drop-shadow(0 0 35px #f1d592) !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -67,7 +66,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 11100 | Luminous shape Master</div>
+<div id="status-info">Build: 11200 | Precision Safe</div>
 
 <div id="entrance">
     <div class="entrance-logo">マジックレストラン Gran GIOIA Ginza<br><span style="font-size: 0.8rem; opacity: 0.7;">-Card Magic Experience-</span></div>
@@ -100,7 +99,7 @@
         { A: ['./6H.webp', './5D.webp', './6C.webp', './4S.webp', './5C.webp'], B: ['./6D.webp', './5H.webp', './6S.webp', './4C.webp'] }
     ];
 
-    function getPattern() {
+    function getVisitPattern() {
         let count = parseInt(localStorage.getItem('gioia_magic_cycles') || '0');
         localStorage.setItem('gioia_magic_cycles', (count + 1).toString());
         return PATTERNS[count % PATTERNS.length];
@@ -117,7 +116,7 @@
         if(isStarted) return;
         isStarted = true;
 
-        var pattern = getPattern(); 
+        var pattern = getVisitPattern(); 
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
         var dynamicText = document.getElementById('dynamic-text');
@@ -147,7 +146,7 @@
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。");
         await wait(2400);
 
-        // --- 1. 山札生成（zIndexは左が底） ---
+        // --- 1. スタック生成 ---
         var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
         var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
         var cards = [];
@@ -165,8 +164,9 @@
 
         pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。");
         
+        // ★修正：スプレッド幅（span）を凝縮し、画面端の安全を確保
         var winW = window.innerWidth;
-        var span = (winW < 600) ? winW * 0.175 : 160; 
+        var span = (winW < 600) ? winW * 0.16 : 160; 
         var targets = [
             { tx: -2 * span, ty: 24, rot: -24 },
             { tx: -1 * span, ty: 12, rot: -12 },
@@ -175,7 +175,7 @@
             { tx: 2 * span, ty: 24, rot: 24 }
         ];
 
-        // --- リボンスプレッド（動く山札から底を落とす） ---
+        // リボンスプレッド（左端から右へ順次展開）
         cards.forEach(c => {
             c.style.transition = "transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)";
             c.style.transform = `translate(${targets[0].tx}px, ${targets[0].ty}px) rotate(${targets[0].rot}deg)`;
@@ -196,7 +196,7 @@
         }
         await wait(500);
 
-        // --- 順次リビール ---
+        // 順次リビール（左から）
         for (let i = 0; i < cards.length; i++) {
             let c = cards[i];
             setTimeout(() => {
@@ -252,7 +252,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 消失演出（zIndex維持 & 真の透明発光） ---
+        // --- 4. 消失演出（zIndex維持） ---
         pushMsg("あなたの頭の中にあるカードを消してみせます...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 145;
@@ -269,7 +269,6 @@
         });
         await wait(1800);
 
-        // 3枚目(中央)をターゲット。zIndexは維持したまま「形状に沿って」光る。
         var vCard = finalDeck[2]; 
         vCard.classList.add('glow'); 
         await wait(1500);
@@ -278,9 +277,7 @@
         vCard.style.transition = "transform 4s ease-in-out, opacity 2.5s, filter 2s";
         vCard.style.transform = `translate(${vTx}, -180px) rotate(3deg)`; 
         await wait(3500);
-        vCard.style.opacity = '0'; 
-        // ぼかしながら消える
-        vCard.style.filter = 'blur(30px) brightness(2)';
+        vCard.style.opacity = '0'; vCard.style.filter = 'blur(30px) brightness(2)';
         await wait(1000);
 
         // --- 5. フィナーレ ---
@@ -305,10 +302,7 @@
         table.style.opacity = '0';
         var reserveUI = document.getElementById('reserve-ui');
         reserveUI.style.display = 'block';
-        setTimeout(() => { 
-            reserveUI.style.opacity = 1; 
-            document.getElementById('status-info').style.opacity = 0; 
-        }, 100);
+        setTimeout(() => { reserveUI.style.opacity = 1; document.getElementById('status-info').style.opacity = 0; }, 100);
     }
 </script>
 </body>
