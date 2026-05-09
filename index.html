@@ -55,9 +55,9 @@
         
         @keyframes luminousPremonition {
             0% { filter: drop-shadow(0 0 0px transparent) brightness(1); }
-            100% { filter: drop-shadow(0 0 30px #f1d592) brightness(1.6); }
+            100% { filter: drop-shadow(0 0 35px #f1d592) brightness(1.8); }
         }
-        .glow { animation: luminousPremonition 1.5s forwards ease-out !important; }
+        .glow { animation: luminousPremonition 1.0s forwards ease-out !important; }
         
         #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
         .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
@@ -71,7 +71,7 @@
 <div id="bg-canvas"></div>
 <div id="bg-image"></div>
 <div id="bg-curtain"></div>
-<div id="status-info">Build: 13100 | Luminous Burst Pure</div>
+<div id="status-info">Build: 13200 | Luminous Burst Final</div>
 <div id="en-subtitle"></div>
 
 <div id="entrance">
@@ -243,7 +243,7 @@
         });
         await wait(1500);
 
-        // --- 3. 130% 高速シャッフル（Now Shuffling...統一） ---
+        // --- 3. 130% 高速シャッフル（セリフ統一：Now Shuffling...） ---
         var moveX = (winW < 600) ? winW * 0.42 : 240;
         var shuffleSteps = [{x:moveX, r:14},{x:-moveX, r:-14},{x:moveX, r:12}];
         dynamicText.style.opacity = "0.7"; 
@@ -264,7 +264,7 @@
         dynamicText.style.opacity = "0";
         await wait(1000);
 
-        // --- 4. 究極の消失演出 ---
+        // --- 4. 劇的消失演出（バースト ＆ 膨張） ---
         pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
@@ -284,25 +284,22 @@
         var vCard = finalDeck[2]; 
         var vTx = vCard.style.getPropertyValue('--base-tx');
         
-        // ★ 1. 光が宿る（予兆：不透明度100%を維持）
+        // 1. 光が宿る（予兆：不透明度100%）
         vCard.classList.add('glow'); 
-        await wait(1200); 
+        await wait(600); // ★ テンポアップ
 
-        // ★ 2. 実体を持ったまま上昇（不透明度は下げない！）
-        vCard.style.transition = "transform 3.0s cubic-bezier(0.4, 0, 0.2, 1), filter 3.0s ease-in";
+        // 2. 実体を持って高速上昇（2.2s）
+        vCard.style.transition = "transform 2.2s cubic-bezier(0.25, 1, 0.5, 1), filter 2.2s ease-in";
         vCard.style.transform = `translate(${vTx}, -280px) rotate(5deg)`; 
-        await wait(3000); // 頂上に到達
+        await wait(2200); 
 
-        // ★ 3. 頂上での「ジュワッ」とした消失
-        // まず、一気に光を爆発させ、輪郭を失わせる（溜め）
-        vCard.style.transition = "filter 0.5s ease-out, transform 0.8s linear";
-        vCard.style.filter = 'drop-shadow(0 0 100px #f1d592) drop-shadow(0 0 180px #f1d592) brightness(8) blur(40px)';
-        await wait(450); 
-
-        // その光り輝く状態のまま、空気へ溶かすように消滅
-        vCard.style.transition = "filter 1.5s ease-in, opacity 1.2s ease-in";
+        // 3. 頂上での劇的消失（ジュワッとした「爆発 ＆ 膨張」）
+        // opacityを下げつつ、scaleを大きく、blurを深くして「溶け出す」
+        vCard.style.transition = "filter 0.8s ease-out, opacity 0.8s ease-out, transform 0.8s ease-out";
+        vCard.style.filter = 'drop-shadow(0 0 100px #f1d592) drop-shadow(0 0 200px #f1d592) brightness(10) blur(80px)';
         vCard.style.opacity = '0';
-        vCard.style.filter = 'drop-shadow(0 0 150px #f1d592) brightness(10) blur(100px)';
+        vCard.style.transform = `translate(${vTx}, -320px) rotate(8deg) scale(1.8)`; // ★ ジュワッと広がる
+
         await wait(1200); 
 
         // --- 5. フィナーレ ---
