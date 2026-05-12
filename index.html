@@ -181,7 +181,7 @@
         setTimeout(() => { document.getElementById('entrance').style.display = 'none'; document.getElementById('bg-image').style.opacity = '1'; }, 800);
         
         await wait(1000);
-        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "Get ready to witness a little miracle.");
+        pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "We invite you to experience a miracle.");
         await wait(2200);
 
         var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
@@ -199,7 +199,7 @@
         cards.forEach(c => { c.classList.add('is-visible'); });
         await wait(1000);
 
-        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Just think of any one of these five cards.");
+        pushMsg("この五枚の中から、直感で一枚を頭の中で選んでください。", "Please choose one of these five cards in your mind.");
         
         var winW = window.innerWidth;
         var span = (winW < 600) ? winW * 0.15 : 135; 
@@ -243,10 +243,10 @@
                 // セリフと英文のブラッシュアップ（mindへ統一）
                 if (isMobile) {
                     dynamicText.innerHTML = "スマートフォンのマイクにも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
-                    updateSubtitle("Now, whisper its name three times in your mind.");
+                    updateSubtitle("Now, silently repeat its suit and number in your mind three times.");
                 } else {
                     dynamicText.innerHTML = "誰にも聞こえないように<br>頭の中で、3回マークと数字を読み上げてください。";
-                    updateSubtitle("Now, whisper its name three times in your mind.");
+                    updateSubtitle("Now, silently repeat its suit and number in your mind three times.");
                 }
                 dynamicText.style.opacity = "1";
             }
@@ -284,7 +284,7 @@
         }
         await wait(800);
 
-        pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe the card in your mind is this one...");
+        pushMsg("あなたの頭の中にあるカードはきっとコチラ….", "I believe this is your card…");
         let finalDeck = [...cards].sort((a,b) => parseInt(a.style.zIndex) - parseInt(b.style.zIndex));
         let fSpan = (winW < 600) ? winW * 0.16 : 140;
         finalDeck.forEach((c, i) => {
@@ -318,7 +318,7 @@
         vCard.classList.add('vanish-action');
 
         await wait(400);
-        pushMsg("あなたのカードだけが、消えました。", "And just like that, your card has vanished.");
+        pushMsg("あなたのカードだけが、消えました。", "Your card should be the only one that has vanished.");
         await wait(1600); 
 
         var remaining = cards.filter(c => c !== vCard).sort((a, b) => {
@@ -338,7 +338,7 @@
         msgBox.style.opacity = "0";
         dynamicText.style.top = "10px";
         dynamicText.innerHTML = "奇跡を感じましたか？<br>Gran GIOIA Ginzaでは、<br>あなたの眼の前で「奇跡」をお届けします。";
-        updateSubtitle("Experience a real miracle, right here at Gran GIOIA Ginza.");
+        updateSubtitle("Where miracles come to life before your eyes — Gran GIOIA Ginza.");
         dynamicText.style.opacity = "1";
         dynamicText.style.fontSize = "1.2rem";
 
