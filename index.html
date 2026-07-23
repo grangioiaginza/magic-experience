@@ -70,9 +70,10 @@
         }
         .vanish-action { animation: cinematicVanish 1.8s forwards cubic-bezier(0.4, 0, 0.2, 1) !important; }
         
-        #reserve-ui { position: absolute; top: 68%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
-        .btn-group { display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        .btn { background: var(--accent); border: none; padding: 18px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        #reserve-ui { position: absolute; top: 62%; left: 50%; transform: translate(-50%, -50%); width: 100%; opacity: 0; z-index: 8000; text-align: center; display: none; transition: 2s ease; }
+        .btn-group { display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        .btn { background: var(--accent); border: none; padding: 16px 30px; border-radius: 60px; font-weight: bold; cursor: pointer; color: #000; font-size: 1rem; width: 85%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); text-decoration: none; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+        .btn-sub { background: none; border: 1px solid #f1d592; color: #f1d592; }
 
         /* Build情報の透明化 */
         #status-info { position: fixed; bottom: 8px; right: 8px; font-size: 9px; color: var(--accent); z-index: 10001; opacity: 0; pointer-events: none; }
@@ -109,7 +110,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="reserve-ui">
         <div class="btn-group">
             <a href="https://gioia.page/reserve" class="btn">特別な日を予約する</a>
-            <button class="btn" style="background:none; border:1px solid #f1d592; color:#f1d592;" onclick="sharePage()">このマジックを誰かに見せる</button>
+            <button class="btn btn-sub" onclick="sharePage()">このマジックを誰かに見せる</button>
+            <a href="https://gioia.page" class="btn btn-sub">公式ページ Top Page</a>
         </div>
     </div>
 </div>
