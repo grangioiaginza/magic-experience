@@ -162,7 +162,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         if(isStarted) return;
         isStarted = true;
 
-        var pattern = getVisitPattern(); 
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
         var dynamicText = document.getElementById('dynamic-text');
@@ -193,8 +192,22 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "We invite you to experience a miracle.");
         await wait(2200);
 
-        var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
-        var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
+        // --- URLに _demo パラメータがあるかの判定 ---
+        var isDemo = window.location.search.includes('_demo');
+        var currentA, currentB;
+
+        if (isDemo) {
+            // デモモード：指定された5枚（6Hを中央の3番目に配置）
+            currentA = ['./10C.webp', './JD.webp', './6H.webp', './4S.webp', './QS.webp'];
+            // 消失後に残る4枚（6H以外の4枚）
+            currentB = ['./10C.webp', './JD.webp', './4S.webp', './QS.webp'];
+        } else {
+            // 通常モード：パターン選択とランダムシャッフル
+            var pattern = getVisitPattern(); 
+            currentA = [...pattern.A].sort(() => Math.random() - 0.5);
+            currentB = [...pattern.B].sort(() => Math.random() - 0.5);
+        }
+
         var cards = [];
         for(var i=0; i<5; i++) {
             var c = document.createElement('div');
