@@ -120,7 +120,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>
     /**
      * 【マジシャンからの隠しメッセージ】
-     * ここまで見るほどこのトリックが気に入って頂き有難う御座います。
+     * ここまで見るほどこのトリックが気に入して頂き有難う御座います。
      * 私達プロマジシャンもトリックを愛し、大切にしています。
      * 最初の5枚と最後の4枚は似ているトランプですが全て違うトランプです。だから、何を選ばれても消えるのです。
      * 今から100年以上前の「The Art of Magic」という洋書に発表された歴史のあるマジックです。
@@ -162,6 +162,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         if(isStarted) return;
         isStarted = true;
 
+        var pattern = getVisitPattern(); 
         var gameUI = document.getElementById('game-ui');
         var msgBox = document.getElementById('msg-container');
         var dynamicText = document.getElementById('dynamic-text');
@@ -192,21 +193,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         pushMsg("これより\"奇跡\"を味わってもらいたいと思います。", "We invite you to experience a miracle.");
         await wait(2200);
 
-        // --- URLに _demo パラメータがあるかの判定 ---
-        var isDemo = window.location.search.includes('_demo');
-        var currentA, currentB;
-
-        if (isDemo) {
-            // デモモード：指定された5枚（6Hを中央の3番目に配置）
-            currentA = ['./10C.webp', './JD.webp', './6H.webp', './4S.webp', './QS.webp'];
-            // 消失後に残る4枚（6H以外の4枚）
-            currentB = ['./10C.webp', './JD.webp', './4S.webp', './QS.webp'];
-        } else {
-            // 通常モード：パターン選択とランダムシャッフル
-            var pattern = getVisitPattern(); 
-            currentA = [...pattern.A].sort(() => Math.random() - 0.5);
-            currentB = [...pattern.B].sort(() => Math.random() - 0.5);
-        }
+        var currentA = [...pattern.A].sort(() => Math.random() - 0.5);
+        var currentB = [...pattern.B].sort(() => Math.random() - 0.5);
 
         var cards = [];
         for(var i=0; i<5; i++) {
@@ -331,7 +319,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         vCard.classList.add('miracle-rise'); 
         await wait(3800); 
 
-        // 2. 頂上で停止 (1.0s)
+        // 2. 頂所で停止 (1.0s)
         await wait(1000); 
 
         // 3. 消失バースト
